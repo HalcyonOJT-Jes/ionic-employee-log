@@ -1,0 +1,27 @@
+<ion-header>
+
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Log</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+  <ion-list>
+    <button ion-item *ngFor="let l of logs" >
+      <ion-grid>
+        <ion-row>
+          <ion-col class="selfie-container">Image</ion-col>
+          <ion-col class="detail-container">
+            <ion-item class="time">Time</ion-item>
+            <ion-item class="location">Location</ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </button>
+  </ion-list>
+</ion-content>

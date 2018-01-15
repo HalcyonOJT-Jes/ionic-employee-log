@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Input</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding>
+  <span *ngIf="_time">{{ _time }}</span>
+  <span *ngIf="battery">{{ battery }}</span>
+  <span *ngIf="long && lat">Longitude : {{ long }}, Latitude : {{ lat }}</span>
+  <span *ngIf="location">Location : {{ location }}</span>
+  <span *ngIf="error">{{ error }}</span>
+  <button ion-button full (click)="openCamera()" *ngIf="!base64Image">Take Selfie</button>
+  <img [src]="base64Image" *ngIf="base64Image" />
+  <ion-item *ngIf="base64Image">
+    <ion-label floating>Message</ion-label>
+    <ion-input [(ngModel)]="message"></ion-input>
+  </ion-item>
+  <button ion-button full (click)="send()" *ngIf="base64Image">Send</button>
+  <div #map_canvas id="map_canvas"></div>
+</ion-content>
