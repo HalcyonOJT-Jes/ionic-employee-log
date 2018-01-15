@@ -21,8 +21,8 @@ import {
 import { MyApp } from './app.component';
 import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
 
-const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
-// const config: SocketIoConfig = { url: 'http://192.168.1.75:3001', options: {} };
+// const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
+const config: SocketIoConfig = { url: 'http://192.168.1.75:3001', options: {} };
 @NgModule({
   declarations: [
     MyApp

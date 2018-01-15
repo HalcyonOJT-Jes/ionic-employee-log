@@ -34,7 +34,10 @@ export class MenuPage {
   lat: any;
   time: any;
   error: any;
-  
+  employeeIds = [
+    4324,
+    4325
+  ];
   rows: any;
 
   options: CameraOptions = {
