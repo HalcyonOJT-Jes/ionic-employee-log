@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { NavController, IonicPage } from 'ionic-angular';
 import { Socket } from 'ng-socket-io';
+import { LogProvider } from './../../providers/log/log';
 
 @IonicPage()
 @Component({
@@ -8,15 +9,15 @@ import { Socket } from 'ng-socket-io';
   templateUrl: 'home.html'
 })
 export class HomePage {
-  nickname = 'Juan Dela Cruz';
-  _time : string;
 
-  constructor(public navCtrl: NavController, private socket: Socket) {
-    
+  constructor(public navCtrl: NavController, private socket: Socket, public log: LogProvider) {
   }
 
   connect(){
-    this.socket.connect();
-    this.navCtrl.setRoot("MenuPage");
-  }  
+    this.navCtrl.setRoot('MenuPage');
+  }
+
+  ionViewDidLoad(){
+    this.log.getLocalLogs();
+  }
 }

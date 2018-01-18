@@ -1,7 +1,10 @@
 import { Socket } from 'ng-socket-io';
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { SQLite, SQLiteObject } from '@ionic-native/sqlite';
 import { Observable } from 'rxjs/Observable';
+import { EmployeesProvider } from './../../providers/employees/employees';
+import { LogProvider } from '../../providers/log/log';
 /**
  * Generated class for the LogPage page.
  *
@@ -15,27 +18,44 @@ import { Observable } from 'rxjs/Observable';
   templateUrl: 'log.html',
 })
 export class LogPage {
+  local_logs = [];
+  t = [];
 
-  logs : Array<{
-    time : string,
-    map : {
-      lat : any,
-      long : any
-    }
-    // img : string,
-  }>
-
-  constructor(public navCtrl: NavController, public navParams: NavParams, public socket: Socket) {
-    
+  constructor(public navCtrl: NavController, public navParams: NavParams, public socket: Socket, public employeeId: EmployeesProvider, private sqlite: SQLite, private logs : LogProvider) {
+    // this.getRemoteLogs().subscribe( data => {
+    //   this.logs = data;
+    //   this.logs.forEach(log => {
+    //     this.t.push(log.timein);
+    //   });
+    // });
   }
 
-  getLogs(){
-    // this.socket.emit('cl-getinitlog', );
+  getRemoteLogs(){
+    let obs = new Observable((observer) => {
+      this.socket.on('sv-sendinitemployeelog', data => {
+        let temp = [];
+        for (let log of data.logs) {
+          log.timeintext = (new Date(log.timein)).toUTCString();
+          temp.push(log);
+        }
+        observer.next(temp);
+      });
+    });
+    return obs;
   }
+
+  sendPendingLogs() {
+
+  }
+
+  requestLogs() {
+    this.socket.emit('cl-getinitlog', { employeeid: this.employeeId.currentId });
+  }
+
+
 
   ionViewDidLoad() {
-    this.getLogs();
+    // this.requestLogs();
+    this.local_logs = this.logs.local_log;
   }
-  
-
 }

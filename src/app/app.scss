@@ -14,3 +14,47 @@
 // To declare rules for a specific mode, create a child rule
 // for the .md, .ios, or .wp mode classes. The mode class is
 // automatically applied to the <body> element in the app.
+.md, .ios, .wp{
+    .state-connected > div{
+        background: rgba(25, 165, 25, 0.7);
+    }
+    
+    .state-disconnected > div{
+        background: rgba(206, 2, 2, 0.7);
+    }
+}
+
+.toolbar-background {
+    background: rgb(2, 14, 36);
+}
+ion-icon{
+    color: white;
+}
+.toolbar-content{
+    .toolbar-title-ios,
+    .toolbar-title-md{
+        color: white;
+    }
+}
+
+.log{
+    background: #eeeeee;
+}
+
+.log-item{
+    background: white;
+    margin-bottom: 3vw;
+    box-shadow: 1px 1px 2px gray;
+}
+
+.hero{
+    color: white;
+    background: rgb(26, 43, 77);
+    padding: 0;
+}
+
+.select-ios,
+.select-md{
+    padding: 0;
+    padding-right: 8px;
+}

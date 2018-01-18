@@ -16,6 +16,7 @@ import {
   MarkerOptions,
   Marker
 } from '@ionic-native/google-maps';
+import { EmployeesProvider } from '../../providers/employees/employees';
 
 @IonicPage()
 @Component({
@@ -34,10 +35,6 @@ export class MenuPage {
   lat: any;
   time: any;
   error: any;
-  employeeIds = [
-    4324,
-    4325
-  ];
   rows: any;
 
   options: CameraOptions = {
@@ -51,7 +48,10 @@ export class MenuPage {
     this.battery = status.level;
   });
 
-  constructor(public platform: Platform, public navCtrl: NavController, public navParams: NavParams, private socket: Socket, private camera: Camera, private geolocation: Geolocation, private batteryStatus: BatteryStatus, private sqlite: SQLite, private nativeGeocoder: NativeGeocoder, private googleMaps: GoogleMaps) {
+  constructor(public platform: Platform, public navCtrl: NavController, public navParams: NavParams, private socket: Socket, private camera: Camera, private geolocation: Geolocation, private batteryStatus: BatteryStatus, private sqlite: SQLite, private nativeGeocoder: NativeGeocoder, private googleMaps: GoogleMaps, public employeeId: EmployeesProvider) {
+    this.socket.on('sv-successTimeIn', () => {
+      console.log("success");
+    });
   }
 
   async getLocation() {
@@ -84,14 +84,18 @@ export class MenuPage {
       // If it's base64:
       this.base64Image = 'data:image/jpeg;base64,' + imageData;
       this.socket.emit('cl-send-timein', this.base64Image);
+      this.confirmLocation();
     }, (err) => {
       console.log(err);
     });
   }
 
+  confirmLocation(){
+    
+  }
+
   send() {
-    let id = this.employeeIds[Math.floor(Math.random() * this.employeeIds.length)];
-    let t = (new Date()).getTime();
+    let t = Math.floor(Date.now() /1000);
     //create or open db and save current log
     this.sqlite.create({
       name: 'data.db',
@@ -103,23 +107,38 @@ export class MenuPage {
       //   console.log(e);
       // });
 
-      db.executeSql('create table log(time INT, lat double, long double, location varchar(255), battery INT)', {}).then(() => {
+      db.executeSql('create table if not exists log(logId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, lat double, long double, location varchar(255), battery INTEGER)', {}).then(() => {
         console.log('Executed SQL')
       }).catch(e => {
         console.log(e);
       });
 
-      db.executeSql('insert into log VALUES(' + t + ', ' + this.lat + ', ' + this.long + ', "' + this.location + '",' + this.battery + ')', {}).then(() => {
+      //save log to local database
+      db.executeSql('insert into log(time, lat, long, location, battery) VALUES(' + t + ', ' + this.lat + ', ' + this.long + ', "' + this.location + '",' + this.battery + ')', {}).then(() => {
         console.log('log added');
+        
+        //send log to server
+        this.socket.emit('cl-timeIn', {
+          employeeId: this.employeeId.currentId,
+          timeIn: t,
+          pic: this.base64Image,
+          map: {
+            lng: this.long,
+            lat: this.lat
+          },
+          batteryStatus: this.battery,
+          msg: this.message,
+        });
       }).catch(e => {
         console.log(e);
       });
 
-      db.executeSql('select * from log', {}).then((data) => {
+      db.executeSql('select logId, time, lat, long, location, battery from log order by logId desc', {}).then((data) => {
         this.rows = [];
         if (data.rows.length > 0) {
           for (let i = 0; i < data.rows.length; i++) {
             this.rows.push({
+              "id" : data.rows.item(i).logId,
               "time": data.rows.item(i).time,
               "lat": data.rows.item(i).lat,
               "long": data.rows.item(i).long,
@@ -134,18 +153,6 @@ export class MenuPage {
       });
     }).catch(e => {
       console.log(e);
-    });
-
-    this.socket.emit('cl-timein', {
-      employeeid: id,
-      time: t,
-      b64: this.base64Image,
-      map: {
-        long: this.long,
-        lat: this.lat
-      },
-      bt: this.battery,
-      msg: this.message,
     });
   }
 

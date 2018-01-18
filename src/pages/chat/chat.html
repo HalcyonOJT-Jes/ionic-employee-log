@@ -12,19 +12,32 @@
 
 <ion-content padding>
   <ion-row *ngFor="let message of messages">
-    <ion-col col-9 class="message">
-      <!-- <span class="user_name">{{ message.from }}</span> -->
-      <!-- <br> -->
-      <span>{{ message.text }}</span>
-      <div class="time">{{ message.time | date : 'dd.MM hh:MM' }}</div>
+
+    <!-- typing -->
+    <!-- <ion-col col-2 *ngIf="this.typing != ''"></ion-col>
+    <ion-col col-9 *ngIf="this.type != ''">
+        <div  class="message other_message">
+          {{ this.typing }}
+        </div>
+    </ion-col> -->
+
+    <!-- admin -->
+    <ion-col col-2 *ngIf="message.isMe === false"></ion-col>
+    <ion-col col-9 *ngIf="message.isMe === false">
+      <div  class="message other_message">
+        <span>{{ message.content }}</span>
+      </div>
+      <div class="time" class="float: left">{{ message.sentAt | date : 'dd.MM hh:MM' }}</div>
     </ion-col>
 
-    <!-- <ion-col offset-3 col-9 *ngIf="message.from === nickname" class="message" [ngClass]="{'my_message': message.from === nickname, 'other_message': message.from !== nickname }">
-      <span class="user_name">{{ message.from }}:</span>
-      <br>
-      <span>{{ message.text }}</span>
-      <div class="time">{{message.created | date:'dd.MM hh:MM'}}</div>
-    </ion-col> -->
+    <!-- employee -->
+    <ion-col col-9 *ngIf="message.isMe === true">
+      <div class="message my_message">
+        <span>{{ message.content }}</span>
+      </div>
+      <div class="time" style="float: right">{{ message.time | date:'dd.MM hh:MM'}}</div>
+    </ion-col>
+    <ion-col col-2 *ngIf="message.isMe === true" ></ion-col>
 
   </ion-row>
 </ion-content>

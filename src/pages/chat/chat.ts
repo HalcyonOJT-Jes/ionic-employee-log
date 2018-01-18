@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, ToastController } from 'ionic-angular';
 import { Socket } from 'ng-socket-io';
 import { Observable } from 'rxjs/Observable';
-
+import { EmployeesProvider } from './../../providers/employees/employees';
 /**
  * Generated class for the RoomPage page.
  *
@@ -20,9 +20,7 @@ export class ChatPage {
   message = '';
   typing = '';
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, private toastCtrl: ToastController) {
-    // this.nickname = this.navParams.get('nickname');
-    // if(!this.nickname) this.navCtrl.push('HomePage');
+  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, private toastCtrl: ToastController, public employees : EmployeesProvider) {
 
     this.getMessages().subscribe(data => {
       this.messages.push(data);
@@ -30,7 +28,7 @@ export class ChatPage {
     });
 
     this.getTyping().subscribe(nickname =>{
-      this.typing = nickname + " is typing";
+      this.typing = "...";
       setTimeout(() => {
         this.typing = '';
       }, 2000);
@@ -51,18 +49,21 @@ export class ChatPage {
   }
 
   sendMessage(){
-    this.socket.emit('cl-sendmessage', {
-      text : this.message,
-      roomId: 4324,
-      time : (new Date).getTime()
-    });
+    let nm = {
+      content : this.message,
+      isMe: true,
+      employeeId : this.employees.currentId,
+      time: (new Date).getTime()
+    }
+    
+    this.socket.emit('cl-sendNewMessage', nm);
+    this.messages.push(nm)
     this.message = '';
   }
 
   getMessages(){
     let observable = new Observable(observer => {
-      this.socket.on('sv-servenewmessagetoemployee', (data) =>{
-        console.log(data);
+      this.socket.on('sv-newMessageFromAdmin', (data) =>{
         observer.next(data);
       });
     });
@@ -78,6 +79,6 @@ export class ChatPage {
   }
 
   ionViewDidLoad(){
-    this.socket.emit('cl-join-room', 4324);
+    this.socket.emit('clJoinRoom', {employeeId : "5a5f185480a25f2aac4abf20"});
   }
 }
