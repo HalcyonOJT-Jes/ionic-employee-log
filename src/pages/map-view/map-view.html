@@ -1,0 +1,24 @@
+<ion-header>
+
+  <ion-navbar color="primary">
+    <ion-title>Confirm your Location</ion-title>
+  </ion-navbar>
+
+</ion-header>
+<ion-content padding>
+  <div #map_canvas id="map_canvas"></div>
+
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar color="primary">
+    <ion-row>
+      <ion-col>
+        <button ion-button color="btnPrimary" large (click)="accept()">ACCEPT</button>
+      </ion-col>
+      <ion-col>
+        <button ion-button color="btnPrimary" outline large (click)="cancel()" class="outlined">CANCEL</button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+</ion-footer>
