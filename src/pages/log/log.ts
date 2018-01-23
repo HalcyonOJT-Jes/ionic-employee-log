@@ -1,3 +1,4 @@
+import { TimeProvider } from './../../providers/time/time';
 import { Socket } from 'ng-socket-io';
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
@@ -18,44 +19,22 @@ import { LogProvider } from '../../providers/log/log';
   templateUrl: 'log.html',
 })
 export class LogPage {
-  local_logs = [];
-  t = [];
-
-  constructor(public navCtrl: NavController, public navParams: NavParams, public socket: Socket, public employeeId: EmployeesProvider, private sqlite: SQLite, private logs : LogProvider) {
-    // this.getRemoteLogs().subscribe( data => {
-    //   this.logs = data;
-    //   this.logs.forEach(log => {
-    //     this.t.push(log.timein);
-    //   });
-    // });
+  month : any;
+  rows : any;
+  constructor(public navCtrl: NavController, public navParams: NavParams, public socket: Socket, public employeeId: EmployeesProvider, private sqlite: SQLite, private log : LogProvider, public timeService : TimeProvider) {
+    this.month = this.timeService.months[this.timeService.getCurMonth()];
+    console.log(this.month);
   }
-
-  getRemoteLogs(){
-    let obs = new Observable((observer) => {
-      this.socket.on('sv-sendinitemployeelog', data => {
-        let temp = [];
-        for (let log of data.logs) {
-          log.timeintext = (new Date(log.timein)).toUTCString();
-          temp.push(log);
-        }
-        observer.next(temp);
-      });
-    });
-    return obs;
+  
+  monthChanged(){
+    this.log.getCustomLogs(this.timeService.months.indexOf(this.month));
   }
 
   sendPendingLogs() {
 
   }
 
-  requestLogs() {
-    this.socket.emit('cl-getinitlog', { employeeid: this.employeeId.currentId });
-  }
-
-
-
   ionViewDidLoad() {
-    // this.requestLogs();
-    this.local_logs = this.logs.local_log;
+    console.log();
   }
 }

@@ -1,10 +1,9 @@
 <ion-header>
 
-  <ion-navbar>
+  <ion-navbar color="primary">
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Chat</ion-title>
   </ion-navbar>
 
 </ion-header>
@@ -14,32 +13,39 @@
   <ion-row *ngFor="let message of messages">
 
     <!-- typing -->
-    <!-- <ion-col col-2 *ngIf="this.typing != ''"></ion-col>
-    <ion-col col-9 *ngIf="this.type != ''">
-        <div  class="message other_message">
-          {{ this.typing }}
-        </div>
-    </ion-col> -->
 
     <!-- admin -->
-    <ion-col col-2 *ngIf="message.isMe === false"></ion-col>
-    <ion-col col-9 *ngIf="message.isMe === false">
+    <ion-col col-2 *ngIf="!message.isMe">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQf6aaQJAo291z97N4QtmDBsG_WhZ9puznRWdlSLIKC5h6RtgqgeQ">
+    </ion-col>
+    <ion-col col-10 *ngIf="!message.isMe">
       <div  class="message other_message">
         <span>{{ message.content }}</span>
       </div>
-      <div class="time" class="float: left">{{ message.sentAt | date : 'dd.MM hh:MM' }}</div>
+      <div class="time" class="float: left">{{ message.time }}</div>
     </ion-col>
 
     <!-- employee -->
-    <ion-col col-9 *ngIf="message.isMe === true">
+    <ion-col col-10 *ngIf="message.isMe">
       <div class="message my_message">
         <span>{{ message.content }}</span>
       </div>
-      <div class="time" style="float: right">{{ message.time | date:'dd.MM hh:MM'}}</div>
+      <div class="time" style="float: right">{{ message.time }}</div>
     </ion-col>
-    <ion-col col-2 *ngIf="message.isMe === true" ></ion-col>
+    <ion-col col-2 *ngIf="message.isMe" >
+      <img src="https://trello-avatars.s3.amazonaws.com/86b9d2dcf35b7a7ca6525b1208401649/50.png">
+    </ion-col>
 
   </ion-row>
+
+
+  <ion-col col-9 *ngIf="adminTyping" >
+      <div class="message">
+       Admin is typing ...
+      </div>
+  </ion-col>
+
+
 </ion-content>
 
 <ion-footer>
@@ -47,7 +53,7 @@
     <ion-row class="message_row">
       <ion-col col-9>
         <ion-item no-lines>
-          <ion-input type="text" placeholder="Message" [(ngModel)]="message" (keypress)="userTyping()">
+          <ion-input type="text" placeholder="Message" [(ngModel)]="message" (ngModelChange)="userTyping()">
 
           </ion-input>
         </ion-item>

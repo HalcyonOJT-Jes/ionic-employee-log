@@ -19,13 +19,20 @@ import {
   Marker
  } from '@ionic-native/google-maps';
 import { Network } from '@ionic-native/network';
-
-import { EmployeesProvider } from './../providers/employees/employees';
-import { ConnectionProvider } from '../providers/connection/connection';
+import { Device } from '@ionic-native/device';
 
 import { MyApp } from './app.component';
 import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
+
+import { EmployeesProvider } from './../providers/employees/employees';
+import { ConnectionProvider } from '../providers/connection/connection';
 import { LogProvider } from '../providers/log/log';
+import { TimeProvider } from '../providers/time/time';
+import { LocationProvider } from '../providers/location/location';
+import { DatabaseProvider } from '../providers/database/database';
+import { BatteryProvider } from '../providers/battery/battery';
+import { DeviceProvider } from '../providers/device/device';
+import { StatusProvider } from '../providers/status/status';
 
 const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
 // const config: SocketIoConfig = { url: 'http://192.168.1.75:8080', options: {} };
@@ -53,10 +60,17 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     SQLite,
     GoogleMaps,
     Network,
+    Device,
     EmployeesProvider,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     ConnectionProvider,
     LogProvider,
+    TimeProvider,
+    LocationProvider,
+    DatabaseProvider,
+    BatteryProvider,
+    DeviceProvider,
+    StatusProvider,
   ]
 })
 export class AppModule {}

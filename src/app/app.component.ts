@@ -23,7 +23,6 @@ export class MyApp {
 
     this.pages = [
       { title : 'Home', component: 'HomePage'},
-      { title : 'Input', component: 'MenuPage'},
       { title : 'Log', component: 'LogPage'},
       { title : 'Chat', component: 'ChatPage'}
     ];

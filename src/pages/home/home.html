@@ -1,18 +1,18 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar color="primary">
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
   </ion-navbar>
 
-  <ion-grid class="hero">
+  <ion-grid class="hero" color="secondary">
     <ion-row>
       <ion-col col-6 offset-3 class="today">
-        <div class="date">Wed, Jan 17, 2018</div>
-        <div class="time">7:48
-          <span>pm</span>
+        <div class="date">{{ this.timeService.dateTime.date }}</div>
+        <div class="time">{{ this.timeService.dateTime.time }}
+          <span>{{ this.timeService.dateTime.am_pm }}</span>
         </div>
-        <button ion-button (click)="connect()">CLOCK IN</button>
+        <button ion-button color="btnPrimary" large (click)="connect()">CLOCK IN</button>
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -22,14 +22,15 @@
   <ion-grid class="log">
     <ion-row>
       <ion-col col-10 offset-1 class="log-list">
-        <ion-row class="log-item" *ngFor="let l of log.local_log">
-          <ion-col col-1>{{ l.id }}</ion-col>
+        <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i;">
+          <ion-col col-1>{{ c - i }}</ion-col>
           <ion-col col-8>
             <div class="date">{{ l.date }}</div>
-            <div class="location">{{ l.location }}</div>
+            <div class="location">{{ l.map.formattedAddress }}</div>
           </ion-col>
           <ion-col col-3>
             <span class="time"> {{ l.time }}</span>
+            <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true) ? 'seen' : '' "></ion-icon>
           </ion-col>
         </ion-row>
       </ion-col>

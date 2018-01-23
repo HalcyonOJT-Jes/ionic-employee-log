@@ -23,6 +23,7 @@
     "@ionic-native/battery-status": "^4.5.2",
     "@ionic-native/camera": "^4.5.2",
     "@ionic-native/core": "4.4.0",
+    "@ionic-native/device": "^4.5.2",
     "@ionic-native/geolocation": "^4.5.2",
     "@ionic-native/google-maps": "^4.5.2",
     "@ionic-native/native-geocoder": "^4.5.2",

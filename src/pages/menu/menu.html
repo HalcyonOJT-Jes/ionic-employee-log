@@ -1,25 +1,31 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar color="primary">
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title>Input</ion-title>
   </ion-navbar>
 </ion-header>
 
 
 <ion-content padding>
-  <span *ngIf="_time">{{ _time }}</span>
-  <span *ngIf="battery">{{ battery }}</span>
-  <span *ngIf="long && lat">Longitude : {{ long }}, Latitude : {{ lat }}</span>
-  <span *ngIf="location">Location : {{ location }}</span>
-  <span *ngIf="error">{{ error }}</span>
-  <button ion-button full (click)="openCamera()" *ngIf="!base64Image">Take Selfie</button>
-  <img [src]="base64Image" *ngIf="base64Image" />
+  <ion-row>
+    <ion-col col-8 offset-2>
+      <img [src]="base64Image" *ngIf="base64Image" />
+    </ion-col>
+  </ion-row>
+  <span class="location" *ngIf="locationService.location"><ion-icon name="pin"></ion-icon>: {{ locationService.location }}</span>
   <ion-item *ngIf="base64Image">
     <ion-label floating>Message</ion-label>
     <ion-input [(ngModel)]="message"></ion-input>
   </ion-item>
-  <button ion-button full (click)="send()" *ngIf="base64Image">Send</button>
-  <div #map_canvas id="map_canvas"></div>
 </ion-content>
+
+<ion-footer >
+  <ion-toolbar color="primary">
+    <ion-row>
+      <ion-col col-6 offset-3>
+        <button ion-button color="btnPrimary" full round large (click)="send()" *ngIf="base64Image">Send</button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+</ion-footer>
