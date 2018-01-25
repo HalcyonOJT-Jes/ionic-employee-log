@@ -14,6 +14,13 @@ export class BatteryProvider {
   currBattery : any;
   isPlugged : any;
   batteryWatch = this.batteryStatus.onChange().subscribe((status: BatteryStatusResponse) => {
+    this.socket.emit('cl-myCurrentStatus', {
+      battery:{
+        level : status.level,
+        plugged : status.isPlugged
+      }
+    });
+
     this.currBattery = status.level;
     this.isPlugged = status.isPlugged;
   });

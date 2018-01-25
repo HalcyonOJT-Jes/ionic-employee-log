@@ -23,7 +23,7 @@
     <ion-row>
       <ion-col col-10 offset-1 class="log-list">
         <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i;">
-          <ion-col col-1>{{ c - i }}</ion-col>
+          <ion-col col-1 style="white-space:nowrap;">{{ c - i }}</ion-col>
           <ion-col col-8>
             <div class="date">{{ l.date }}</div>
             <div class="location">{{ l.map.formattedAddress }}</div>

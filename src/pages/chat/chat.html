@@ -10,7 +10,7 @@
 
 
 <ion-content padding>
-  <ion-row *ngFor="let message of messages">
+  <ion-row *ngFor="let message of messageService.messages">
 
     <!-- typing -->
 
@@ -35,17 +35,13 @@
     <ion-col col-2 *ngIf="message.isMe" >
       <img src="https://trello-avatars.s3.amazonaws.com/86b9d2dcf35b7a7ca6525b1208401649/50.png">
     </ion-col>
-
   </ion-row>
-
 
   <ion-col col-9 *ngIf="adminTyping" >
       <div class="message">
        Admin is typing ...
       </div>
   </ion-col>
-
-
 </ion-content>
 
 <ion-footer>

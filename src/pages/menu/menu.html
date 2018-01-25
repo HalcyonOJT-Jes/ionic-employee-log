@@ -10,11 +10,11 @@
 <ion-content padding>
   <ion-row>
     <ion-col col-8 offset-2>
-      <img [src]="base64Image" *ngIf="base64Image" />
+      <img [src]="database.base64Image" *ngIf="database.base64Image" />
     </ion-col>
   </ion-row>
   <span class="location" *ngIf="locationService.location"><ion-icon name="pin"></ion-icon>: {{ locationService.location }}</span>
-  <ion-item *ngIf="base64Image">
+  <ion-item *ngIf="database.base64Image">
     <ion-label floating>Message</ion-label>
     <ion-input [(ngModel)]="message"></ion-input>
   </ion-item>
@@ -24,7 +24,7 @@
   <ion-toolbar color="primary">
     <ion-row>
       <ion-col col-6 offset-3>
-        <button ion-button color="btnPrimary" full round large (click)="send()" *ngIf="base64Image">Send</button>
+        <button ion-button color="btnPrimary" full round large (click)="send()" *ngIf="database.base64Image">Send</button>
       </ion-col>
     </ion-row>
   </ion-toolbar>

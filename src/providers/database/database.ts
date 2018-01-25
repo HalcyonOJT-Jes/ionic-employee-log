@@ -11,6 +11,7 @@ import { Platform } from 'ionic-angular';
 */
 @Injectable()
 export class DatabaseProvider {
+  base64Image : any;
   public db: any;
   constructor(public platform: Platform, public http: HttpClient, private sqlite: SQLite) {
     this.initializeStorage();
@@ -24,15 +25,37 @@ export class DatabaseProvider {
           location: 'default'
         }).then((db: SQLiteObject) => {
           this.db = db;
-
+          // db.executeSql('drop table log', {}).then(() => {
+          //   console.log("Dropped table : Log");
+          // }).catch(e => {
+          //   console.log(e);
+          // });
           /* log table creation */
-          // db.executeSql('create table if not exists log(logId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, month INTEGER, lat double, long double, location varchar(255), battery INTEGER)', {}).then(() => {
+          /*
+            log
+            *-logId
+            --time
+            --month
+            --lat
+            --long
+            --location
+            --battery
+            --isSeen
+          */
+          // db.executeSql('create table if not exists log(logId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, month INTEGER, lat double, long double, location varchar(255), battery INTEGER, isSeen INTEGER)', {}).then(() => {
           //   console.log('Created log table')
           // }).catch(e => {
           //   console.log(e);
           // });
 
           /* message table creation */
+          /*
+            message
+            *-messageId
+            --time
+            --content
+            --isMe
+          */
           // db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, content varchar(255), isMe INTEGER)', {}).then(() => {
           //   console.log('Created message table')
           // }).catch(e => {

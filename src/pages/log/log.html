@@ -23,9 +23,9 @@
 <ion-content>
   <ion-grid class="log">
     <ion-row>
-      <ion-col col-10 offset-1 class="log-list">
+      <!-- <ion-col col-10 offset-1 class="log-list" *ngIf="log.custom_log.length == 0">
         <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i;">
-          <ion-col col-1>{{ c - i }}</ion-col>
+          <ion-col col-1 style="white-space:nowrap;">{{ c - i }}</ion-col>
           <ion-col col-8>
             <div class="date">{{ l.date }}</div>
             <div class="location">{{ l.map.formattedAddress }}</div>
@@ -33,6 +33,20 @@
           <ion-col col-3>
             <span class="time"> {{ l.time }}</span>
             <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true) ? 'seen' : '' "></ion-icon>
+          </ion-col>
+        </ion-row>
+      </ion-col> -->
+
+      <ion-col col-10 offset-1 class="log-list" *ngIf="log.custom_log.length > 0">
+        <ion-row class="log-item" *ngFor="let l of log.custom_log; let c = count; index as i;">
+          <ion-col col-1 style="white-space:nowrap;">{{ c - i }}</ion-col>
+          <ion-col col-8>
+            <div class="date">{{ l.date }}</div>
+            <div class="location">{{ l.map.formattedAddress }}</div>
+          </ion-col>
+          <ion-col col-3>
+            <span class="time"> {{ l.time }}</span>
+            <!-- <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true) ? 'seen' : '' "></ion-icon> -->
           </ion-col>
         </ion-row>
       </ion-col>

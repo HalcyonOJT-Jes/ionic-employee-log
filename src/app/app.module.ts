@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { ErrorHandler, NgModule } from '@angular/core';
+import { ErrorHandler, NgModule, ElementRef } from '@angular/core';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
@@ -33,6 +33,7 @@ import { DatabaseProvider } from '../providers/database/database';
 import { BatteryProvider } from '../providers/battery/battery';
 import { DeviceProvider } from '../providers/device/device';
 import { StatusProvider } from '../providers/status/status';
+import { MessageProvider } from '../providers/message/message';
 
 const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
 // const config: SocketIoConfig = { url: 'http://192.168.1.75:8080', options: {} };
@@ -71,6 +72,7 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     BatteryProvider,
     DeviceProvider,
     StatusProvider,
+    MessageProvider
   ]
 })
 export class AppModule {}

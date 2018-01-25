@@ -23,7 +23,6 @@ export class LogPage {
   rows : any;
   constructor(public navCtrl: NavController, public navParams: NavParams, public socket: Socket, public employeeId: EmployeesProvider, private sqlite: SQLite, private log : LogProvider, public timeService : TimeProvider) {
     this.month = this.timeService.months[this.timeService.getCurMonth()];
-    console.log(this.month);
   }
   
   monthChanged(){
@@ -35,6 +34,10 @@ export class LogPage {
   }
 
   ionViewDidLoad() {
-    console.log();
+    this.monthChanged();
+  }
+
+  ionViewDidLeave(){
+    this.log.custom_log = [];
   }
 }

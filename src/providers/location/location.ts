@@ -13,24 +13,30 @@ import { Platform } from 'ionic-angular';
 */
 @Injectable()
 export class LocationProvider {
-  long : any;
-  lat : any;
-  location : string;
+  long: any;
+  lat: any;
+  location: string;
   watch = this.geolocation.watchPosition().subscribe((data) => {
     this.long = data.coords.longitude;
     this.lat = data.coords.latitude;
     this.geocoder.reverseGeocode(this.lat, this.long).then((result: NativeGeocoderReverseResult) => {
-      this.location = result.thoroughfare + ", " + result.locality + " " + result.administrativeArea + ", " + result.countryCode;
+      let newLocation = result.thoroughfare + ", " + result.locality + " " + result.administrativeArea + ", " + result.countryCode;
+      if (this.location != newLocation) {
+        this.location = newLocation;
+        this.socket.emit('cl-myCurrentStatus', {
+          location: {
+            formattedAddress: newLocation,
+            lat: this.lat,
+            long: this.long
+          }
+        });
+      }
     }).catch((error: any) => {
       console.log(error);
     });
-    this.socket.emit('cl-locationChanged', {
-      lat : data.coords.latitude,
-      long : data.coords.longitude
-    });
   });
 
-  constructor(public platform: Platform, public http: HttpClient , private geolocation: Geolocation, private socket : Socket, private geocoder: NativeGeocoder) {
+  constructor(public platform: Platform, public http: HttpClient, private geolocation: Geolocation, private socket: Socket, private geocoder: NativeGeocoder) {
     console.log('Hello LocationProvider Provider');
     this.getLocation();
   }

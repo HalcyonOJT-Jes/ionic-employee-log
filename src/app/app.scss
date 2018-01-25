@@ -16,11 +16,15 @@
 // automatically applied to the <body> element in the app.
 .md, .ios, .wp{
     .state-connected > div{
-        background: rgba(25, 165, 25, 0.7);
+        background: rgba(25, 165, 25, 0.9);
     }
     
     .state-disconnected > div{
-        background: rgba(206, 2, 2, 0.7);
+        background: rgba(206, 2, 2, 0.9);
+    }
+
+    .state-serverConnected > div {
+        background : rgba(134, 39, 211, 0.9);
     }
 }
 
@@ -44,4 +48,13 @@
 .select-md{
     padding: 0;
     padding-right: 8px;
+}
+
+.check{
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    &.seen{
+        color:rgb(36, 130, 17); 
+    }
 }

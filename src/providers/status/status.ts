@@ -22,19 +22,27 @@ export class StatusProvider {
     this.socket.on('sv-myCurrentStatus', () => {
       this.platform.ready().then(() => {
         this.socket.emit('cl-myCurrentStatus', {
-          battery: this.batteryService.currBattery,
-          batteryPlugged: this.batteryService.isPlugged,
-          location: this.locationService.location,
-          lat: this.locationService.lat,
-          long: this.locationService.long,
+          battery:{
+            level : this.batteryService.currBattery,
+            plugged : this.batteryService.isPlugged
+          },
+          location : {
+            formattedAddress: this.locationService.location,
+            lat: this.locationService.lat,
+            long: this.locationService.long,
+          },
           connection: this.connectionService.network.type,
-          model: this.deviceService.model,
-          platform: this.deviceService.platform,
-          manufacturer: this.deviceService.manufacturer,
-          serial: this.deviceService.serial,
-          uuid: this.deviceService.uuid
+          phone : {
+            model: this.deviceService.model,
+            platform: this.deviceService.platform,
+            manufacturer: this.deviceService.manufacturer,
+            serial: this.deviceService.serial,
+            uuid: this.deviceService.uuid
+          }
         });
       });
     });
   }
+
+
 }

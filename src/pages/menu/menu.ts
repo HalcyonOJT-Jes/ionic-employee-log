@@ -1,14 +1,15 @@
+import { ConnectionProvider } from './../../providers/connection/connection';
+import { LogProvider } from './../../providers/log/log';
 import { DatabaseProvider } from './../../providers/database/database';
 import { TimeProvider } from './../../providers/time/time';
-import { LocationProvider } from './../../providers/location/location';
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, LoadingController } from 'ionic-angular';
+import { IonicPage, NavController, LoadingController } from 'ionic-angular';
 import { Socket } from 'ng-socket-io';
-import { Camera, CameraOptions } from '@ionic-native/camera';
 import { EmployeesProvider } from '../../providers/employees/employees';
 import { Observable } from 'rxjs/Observable';
 import { BatteryProvider } from '../../providers/battery/battery';
 import { AlertController } from 'ionic-angular';
+import { LocationProvider } from '../../providers/location/location';
 
 @IonicPage()
 @Component({
@@ -16,18 +17,13 @@ import { AlertController } from 'ionic-angular';
   templateUrl: 'menu.html',
 })
 export class MenuPage {
-  base64Image: string;
   message: string;
   time: any;
   rows: any;
+
   sendLoading = this.loader.create({
     spinner: 'crescent',
     content: 'Uploading your Log in',
-    dismissOnPageChange: true
-  });
-
-  openMapLoading = this.loader.create({
-    spinner: 'crescent',
     dismissOnPageChange: true
   });
 
@@ -35,7 +31,7 @@ export class MenuPage {
     title: 'Success!',
     subTitle: 'You have successfully logged in.',
     buttons: [{
-      text : 'Ok',
+      text: 'Ok',
       handler: () => {
         this.navCtrl.setRoot('HomePage', {
           success: true
@@ -44,64 +40,62 @@ export class MenuPage {
     }]
   });
 
-  options: CameraOptions = {
-    destinationType: this.camera.DestinationType.DATA_URL,
-    encodingType: this.camera.EncodingType.JPEG,
-    mediaType: this.camera.MediaType.PICTURE,
-    cameraDirection: 1
-  }
-
-  constructor(public alertCtrl: AlertController, public navCtrl: NavController, public navParams: NavParams, private socket: Socket, private camera: Camera, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider) {
+  constructor(private connectionService: ConnectionProvider, public alertCtrl: AlertController, public navCtrl: NavController, private socket: Socket, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider, private logService: LogProvider) {
     this.socket.on('sv-successTimeIn', (data) => {
       if (data.success) {
         this.sendLoading.dismiss().then(() => {
           this.alert.present();
+        }).catch(() => {
+          this.alert.setTitle('Failed.')
+            .setSubTitle('Unable to connect to server. Your log will be sent once connected to server.')
+            .present();
         });
       }
     });
 
-    this.base64Image = this.navParams.get('b64');
-  }
-
-  openCamera() {
-    this.camera.getPicture(this.options).then((imageData) => {
-      // imageData is either a base64 encoded string or a file URI
-      // If it's base64:
-      this.base64Image = 'data:image/jpeg;base64,' + imageData;
-      //show loading
-      this.openMapLoading.present().then(() => {
-        //confirm locaiton
-        this.navCtrl.push('MapViewPage', {
-          lat: this.locationService.lat,
-          long: this.locationService.long,
-          b64: this.base64Image
-        });
-      });
-    }, (err) => {
-      console.log(err);
-    });
   }
 
   send() {
     //show loader
-    this.sendLoading.present();
+    if (this.connectionService.connection) this.sendLoading.present();
+    else this.sendLoading.setContent("Can't connect to server. Saving to local.").present();
+
     let t = Math.floor(Date.now() / 1000);
 
     //save log to local database
     this.database.db.executeSql('insert into log(time, month, lat, long, location, battery) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + this.locationService.lat + ', ' + this.locationService.long + ', "' + this.locationService.location + '",' + this.batteryService.currBattery + ')', {}).then(() => {
       console.log('log added');
-      
-      //send log to server
-      this.socket.emit('cl-timeIn', {
-        employeeId: this.employeeId.currentId,
-        timeIn: t,
-        pic: this.base64Image,
+
+      if (this.connectionService.connection) {
+        //send log to server
+        this.socket.emit('cl-timeIn', {
+          employeeId: this.employeeId.currentId,
+          timeIn: t,
+          pic: this.database.base64Image,
+          map: {
+            lng: this.locationService.long,
+            lat: this.locationService.lat
+          },
+          batteryStatus: this.batteryService.currBattery,
+          msg: this.message,
+        }, (res) => {
+          console.log(res);
+        });
+      }else{
+        this.sendLoading.dismiss().then(() => {
+          this.alert.present();
+        })
+      }
+
+      //push to log array
+      let dt = this.timeService.getDateTime(t * 1000);
+      this.logService.local_log.unshift({
+        time: dt.time + " " + dt.am_pm,
+        date: dt.date,
         map: {
-          lng: this.locationService.long,
-          lat: this.locationService.lat
+          formattedAddress: this.locationService.location
         },
-        batteryStatus: this.batteryService.currBattery,
-        msg: this.message,
+        isSeen: false
       });
     }).catch(e => {
       console.log(e);
@@ -109,6 +103,5 @@ export class MenuPage {
   }
 
   ionViewDidLoad() {
-    if (!this.base64Image) this.openCamera();
   }
 }
