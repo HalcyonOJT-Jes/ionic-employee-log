@@ -22,9 +22,19 @@ export class LogProvider {
   unixMax: any;
   constructor(private base64: Base64, private platform: Platform, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider) {
     console.log("Hello Log Provider");
-    this.socket.on('sv-notifSeen', (data) => {
-      console.log("sv notifseen");
-      this.requestRemoteLogs();
+    this.socket.on('sv-notifSeen', (logId) => {
+      console.log(logId);
+      let temp_log = this.local_log;
+      // temp_log.find(o => {
+      //   if(o._id === logId) o.isSeen = 1;
+      //   return true;
+      // });
+      temp_log.find((o, i) => {
+        if(o._id === logId) temp_log[i].isSeen = 1;
+        this.local_log = temp_log;
+        return true;
+      });
+
     });
 
     this.database._dbready.subscribe((ready) => {
@@ -119,9 +129,6 @@ export class LogProvider {
         log.time = dt.time + " " + dt.am_pm;
         log.date = dt.date;
         this.local_log.push(log);
-        let month = new Date(log.timeIn).getMonth();
-        let isSeen = log.isSeen == true ? 1 : 0;
-
         //push to time in list to get the max unix
         this.time_in_list.push(log.timeIn);
         resolve(data);
@@ -223,5 +230,9 @@ export class LogProvider {
 
   requestRemoteLogs() {
     this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
+  }
+
+  trackLog(index, log){
+    return log ? log.id : undefined;
   }
 }
