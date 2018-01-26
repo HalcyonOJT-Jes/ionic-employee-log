@@ -64,7 +64,7 @@ export class MessageProvider {
 
   getMessage() {
     let observable = new Observable(observer => {
-      this.socket.on('sv-newMessageFromAdmin', (data) => {
+      this.socket.on('sv-newMessage', (data) => {
         let dt = this.timeService.getDateTime(data.sentAt * 1000);
         data.time = dt.time + " " + dt.am_pm;
         observer.next(data);

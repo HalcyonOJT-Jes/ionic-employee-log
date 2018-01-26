@@ -84,7 +84,7 @@ export class ChatPage {
       time : unix
     }
 
-    this.messageService.messages.push(nm);
+    // this.messageService.messages.push(nm);
     //save message to local database
     this.database.db.executeSql('insert into message(time, content, isMe) VALUES(' + unix + ', "' + nm.content + '", 1)', {}).then(() => {
       console.log("Messaged saved to local");

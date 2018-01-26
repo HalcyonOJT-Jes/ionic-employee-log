@@ -20,6 +20,8 @@ import {
  } from '@ionic-native/google-maps';
 import { Network } from '@ionic-native/network';
 import { Device } from '@ionic-native/device';
+import { File } from '@ionic-native/file';
+import { Base64 } from '@ionic-native/base64';
 
 import { MyApp } from './app.component';
 import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
@@ -72,7 +74,9 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     BatteryProvider,
     DeviceProvider,
     StatusProvider,
-    MessageProvider
+    MessageProvider,
+    File,
+    Base64
   ]
 })
 export class AppModule {}

@@ -95,4 +95,6 @@
     </plugin>
     <plugin name="cordova-plugin-network-information" spec="^2.0.1" />
     <plugin name="cordova-plugin-device" spec="^1.1.4" />
+    <plugin name="cordova-plugin-file" spec="^6.0.1" />
+    <plugin name="com-badrit-base64" spec="^0.2.0" />
 </widget>

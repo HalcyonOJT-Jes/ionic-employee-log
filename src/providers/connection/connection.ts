@@ -15,7 +15,7 @@ import { AlertController } from 'ionic-angular/components/alert/alert-controller
 @Injectable()
 export class ConnectionProvider {
   networkType: string;
-  connection: boolean;
+  connection : boolean;
 
   constructor(private alertCtrl: AlertController, public http: HttpClient, public network: Network, private socket: Socket, public employees: EmployeesProvider, public toast: ToastController, public platform: Platform) {
     console.log('Hello ConnectionProvider Provider');
@@ -27,11 +27,12 @@ export class ConnectionProvider {
     });
 
     this.network.onDisconnect().subscribe(() => {
+      this.connection = false;
       this.showConnectionUpdate('disconnected', 'state-disconnected');
     });
 
     this.socket.on('connect_error', () => {
-      if(this.connection == true){
+      if (this.connection == true) {
         this.connection = false;
         let alert = this.alertCtrl.create({
           title: 'Server error',
@@ -47,7 +48,7 @@ export class ConnectionProvider {
     });
 
     this.socket.on('reconnect', () => {
-      if(this.connection == false){
+      if (this.connection == false) {
         console.log("reconnected; connection is true;");
         this.connection = true;
         this.toast.create({
