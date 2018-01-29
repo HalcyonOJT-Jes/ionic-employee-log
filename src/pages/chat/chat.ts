@@ -22,7 +22,6 @@ export class ChatPage {
 
   constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees : EmployeesProvider, public timeService : TimeProvider, public database : DatabaseProvider, private messageService : MessageProvider ) {
     this.messageService.getMessage().subscribe(data => {
-      this.messageService.messages.push(data);
       this.typing = '';
       this.adminTyping = false;
       this.scrollToBottom();

@@ -25,6 +25,7 @@ import { File } from '@ionic-native/file';
 import { Base64 } from '@ionic-native/base64';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { OneSignal } from '@ionic-native/onesignal';
+import { LocalNotifications } from '@ionic-native/local-notifications';
 
 import { MyApp } from './app.component';
 import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
@@ -81,7 +82,8 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     File,
     Base64,
     BarcodeScanner,
-    OneSignal
+    OneSignal,
+    LocalNotifications
   ]
 })
 export class AppModule {}

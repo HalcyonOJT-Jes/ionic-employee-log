@@ -31,6 +31,7 @@
     "@ionic-native/file": "^4.5.2",
     "@ionic-native/geolocation": "^4.5.2",
     "@ionic-native/google-maps": "^4.5.2",
+    "@ionic-native/local-notifications": "^4.5.3",
     "@ionic-native/native-geocoder": "^4.5.2",
     "@ionic-native/network": "^4.5.2",
     "@ionic-native/onesignal": "^4.5.3",
@@ -42,6 +43,7 @@
     "com-badrit-base64": "^0.2.0",
     "cordova-android": "^6.3.0",
     "cordova-browser": "~5.0.3",
+    "cordova-plugin-badge": "^0.8.7",
     "cordova-plugin-battery-status": "^2.0.1",
     "cordova-plugin-camera": "^4.0.1",
     "cordova-plugin-device": "^1.1.7",
@@ -49,6 +51,7 @@
     "cordova-plugin-geolocation": "^4.0.1",
     "cordova-plugin-googlemaps": "^2.1.1",
     "cordova-plugin-ionic-webview": "^1.1.16",
+    "cordova-plugin-local-notification": "^0.9.0-beta.2",
     "cordova-plugin-nativegeocoder": "^2.0.5",
     "cordova-plugin-network-information": "^2.0.1",
     "cordova-plugin-splashscreen": "^4.0.3",
@@ -93,7 +96,8 @@
       "phonegap-plugin-barcodescanner": {},
       "cordova-plugin-device": {},
       "cordova-plugin-nativegeocoder": {},
-      "onesignal-cordova-plugin": {}
+      "onesignal-cordova-plugin": {},
+      "cordova-plugin-local-notification": {}
     },
     "platforms": [
       "browser",

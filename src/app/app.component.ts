@@ -1,3 +1,4 @@
+import { MessageProvider } from './../providers/message/message';
 import { EmployeesProvider } from './../providers/employees/employees';
 import { Socket } from 'ng-socket-io';
 import { ConnectionProvider } from './../providers/connection/connection';
@@ -6,7 +7,6 @@ import { Nav, Platform } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { OneSignal } from '@ionic-native/onesignal';
-
 @Component({
   templateUrl: 'app.html'
 })
@@ -16,7 +16,7 @@ export class MyApp {
   pages: Array<{title: string, component: any}>;
   employeeIds = [];
   
-  constructor(private employees : EmployeesProvider, private socket : Socket, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal) {
+  constructor(private employees : EmployeesProvider, private socket : Socket, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
@@ -32,8 +32,10 @@ export class MyApp {
       { title : 'Chat', component: 'ChatPage'},
       { title : 'Scan', component : 'ScanPage'}
     ];
-    
-    this.employeeIds = [4324, 4325];
+
+    this.messages.localNotif.on('click', () => {
+      this.nav.setRoot('ChatPage');
+    });
   }
 
   openPage(page){
