@@ -27,7 +27,8 @@ export class MyApp {
     this.pages = [
       { title : 'Home', component: 'HomePage'},
       { title : 'Log', component: 'LogPage'},
-      { title : 'Chat', component: 'ChatPage'}
+      { title : 'Chat', component: 'ChatPage'},
+      { title : 'Scan', component : 'ScanPage'}
     ];
     
     this.employeeIds = [4324, 4325];
