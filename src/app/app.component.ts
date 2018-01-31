@@ -12,7 +12,7 @@ import { OneSignal } from '@ionic-native/onesignal';
 })
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
-  rootPage:string = 'HomePage';
+  rootPage:string = 'LoginPage';
   pages: Array<{title: string, component: any}>;
   employeeIds = [];
   
@@ -23,6 +23,7 @@ export class MyApp {
       this.initializeApp();
       this.initializeOneSignal();
       statusBar.styleDefault();
+      statusBar.hide();
       splashScreen.hide();
     });
 

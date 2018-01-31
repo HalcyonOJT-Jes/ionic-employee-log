@@ -1,3 +1,38 @@
 page-login {
-
+    video{
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        min-width: 50%;
+        min-height: 50%;
+        width: auto;
+        height: auto;
+        z-index: -100;
+        transform: translateX(-50%) translateY(-50%);
+    }
+    
+    .parent{
+        background: rgba(24, 24, 24, 0.426);
+        height: 100%;
+    }
+    #title{
+        text-align: center;
+        padding: 20% 5%;
+        font-size: 5em;
+        color: #dfdfdf;
+        span{
+            font-weight: 700;
+        }
+    }
+    #demo_list_outer{
+        width: 100%;
+    }
+    #demo_list_inner{
+        margin: 0 auto;
+        width: 70%;
+        ion-item{
+            background: transparent;
+            color: #dfdfdf;
+        }
+    }
 }
