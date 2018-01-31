@@ -34,7 +34,7 @@ export class ConnectionProvider {
     this.socket.on('connect_error', () => {
       if (this.connection == true) {
         this.connection = false;
-        let alert = this.alertCtrl.create({
+        this.alertCtrl.create({
           title: 'Server error',
           subTitle: 'The server is currently unavailable. Your logs and messages will be sent once connected to server.',
           buttons: ['Ok']

@@ -5,7 +5,6 @@ import { IonicPage, NavController, NavParams, Content } from 'ionic-angular';
 import { Socket } from 'ng-socket-io';
 import { Observable } from 'rxjs/Observable';
 import { EmployeesProvider } from './../../providers/employees/employees';
-import { ClassGetter } from '@angular/compiler/src/output/output_ast';
 import { TimeProvider } from '../../providers/time/time';
 
 @IonicPage()
@@ -35,7 +34,6 @@ export class ChatPage {
   }
 
   scrollToBottom(){
-    let d = this.content.getContentDimensions();
     this.content.scrollToBottom();
   }
 

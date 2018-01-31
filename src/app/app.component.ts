@@ -16,7 +16,7 @@ export class MyApp {
   pages: Array<{title: string, component: any}>;
   employeeIds = [];
   
-  constructor(private employees : EmployeesProvider, private socket : Socket, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider) {
+  constructor(private socket : Socket, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
