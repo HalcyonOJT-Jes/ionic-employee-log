@@ -82,13 +82,8 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     File,
     Base64,
     BarcodeScanner,
-<<<<<<< Updated upstream
     OneSignal,
     LocalNotifications
-=======
-    Push,
-    FCM
->>>>>>> Stashed changes
   ]
 })
 export class AppModule {}
