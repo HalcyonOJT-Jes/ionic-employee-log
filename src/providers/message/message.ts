@@ -37,6 +37,7 @@ export class MessageProvider {
         i.time = dt.time + " " + dt.am_pm;
         this.messages.push(i);
       }
+      
     });
   }
 
