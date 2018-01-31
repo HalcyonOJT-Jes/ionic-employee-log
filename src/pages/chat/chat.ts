@@ -6,6 +6,7 @@ import { Socket } from 'ng-socket-io';
 import { Observable } from 'rxjs/Observable';
 import { EmployeesProvider } from './../../providers/employees/employees';
 import { TimeProvider } from '../../providers/time/time';
+import { Platform } from 'ionic-angular/platform/platform';
 
 @IonicPage()
 @Component({
@@ -19,7 +20,8 @@ export class ChatPage {
   adminTyping = false;
   timeoutTyping: any;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees : EmployeesProvider, public timeService : TimeProvider, public database : DatabaseProvider, private messageService : MessageProvider ) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees : EmployeesProvider, public timeService : TimeProvider, public database : DatabaseProvider, private messageService : MessageProvider, private push : Push, private platform : Platform) {
+
     this.messageService.getMessage().subscribe(data => {
       this.typing = '';
       this.adminTyping = false;

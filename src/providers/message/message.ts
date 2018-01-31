@@ -37,7 +37,12 @@ export class MessageProvider {
         i.time = dt.time + " " + dt.am_pm;
         this.messages.push(i);
       }
+      
     });
+  }
+
+  syncMessages () {
+    
   }
 
   loadLocalMessages() {
@@ -83,7 +88,7 @@ export class MessageProvider {
 
   triggerLocalNotif(data){
     this.localNotif.schedule({
-      title : 'New message',
+      title : 'New message from Admin',
       text : data.content
     });
   }
