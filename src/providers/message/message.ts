@@ -40,6 +40,10 @@ export class MessageProvider {
     });
   }
 
+  syncMessages () {
+    
+  }
+
   loadLocalMessages() {
     this.database.db.executeSql('select * from message order by messageId desc', {}).then((data) => {
       if (data.rows.length > 0) {
@@ -83,7 +87,7 @@ export class MessageProvider {
 
   triggerLocalNotif(data){
     this.localNotif.schedule({
-      title : 'New message',
+      title : 'New message from Admin',
       text : data.content
     });
   }
