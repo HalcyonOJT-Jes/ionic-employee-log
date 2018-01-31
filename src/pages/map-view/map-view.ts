@@ -9,13 +9,6 @@ import {
   GoogleMapOptions,
 } from '@ionic-native/google-maps';
 
-/**
- * Generated class for the MapViewPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
-
 @IonicPage()
 @Component({
   selector: 'page-map-view',
@@ -45,6 +38,7 @@ export class MapViewPage {
 
   loadMap(lat, long) {
     return new Promise((res, rej) => {
+      console.log(lat, long);
       let s = true;
 
       let mapOptions: GoogleMapOptions = {
