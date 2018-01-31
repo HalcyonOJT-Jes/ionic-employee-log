@@ -1,3 +1,4 @@
+import { Socket } from 'ng-socket-io';
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { Platform } from 'ionic-angular/platform/platform';
 import { LocationProvider } from './../../providers/location/location';
@@ -8,6 +9,7 @@ import {
   GoogleMapsEvent,
   GoogleMapOptions,
 } from '@ionic-native/google-maps';
+import { EmployeesProvider } from '../../providers/employees/employees';
 
 @IonicPage()
 @Component({
@@ -18,7 +20,7 @@ export class MapPage {
 
   @ViewChild('canvas') mapElement: ElementRef;
   map: GoogleMap;
-  constructor(public navCtrl: NavController, public navParams: NavParams, private locationServices: LocationProvider, private platform: Platform, private googleMaps: GoogleMaps) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private locationServices: LocationProvider, private platform: Platform, private googleMaps: GoogleMaps, private socket : Socket) {
     this.platform.ready().then(() => {
       this.loadMap(this.locationServices.lat, this.locationServices.long).then(() => {
         console.log("success");
@@ -49,6 +51,31 @@ export class MapPage {
         .then(() => {
           console.log('Map is ready!');
 
+          this.map.on(GoogleMapsEvent.MAP_CLICK).subscribe((latLng) => {
+            console.log("clicked");
+            console.log(latLng);
+            this.map.addMarker({
+              icon: 'red',
+              animation: 'DROP',
+              position: {
+                lat : latLng[0].lat,
+                lng : latLng[0].lng
+              }
+            }).then(marker => {
+              marker.on(GoogleMapsEvent.MARKER_CLICK)
+              .subscribe(() => {
+                alert('clicked');
+              });
+
+              this.socket.emit('cl-myCurrentStatus', {
+                lat : latLng[0].lat,
+                lng : latLng[0].lng
+              });
+            }).catch(e => {
+              console.log(e);
+            });
+          });
+
           // Now you can use all methods safely.
           this.map.addMarker({
             title: 'Ionic',
@@ -64,18 +91,20 @@ export class MapPage {
                 .subscribe(() => {
                   alert('clicked');
                 });
-              res(true);
             });
+
+
         }).catch(e => {
           console.log(e);
-          res(false);
         });
+
+
     });
   }
 
   ionViewDidLoad() {
     console.log("ion view did load");
-    
+
   }
 
 }
