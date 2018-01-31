@@ -20,7 +20,7 @@ export class ChatPage {
   adminTyping = false;
   timeoutTyping: any;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees : EmployeesProvider, public timeService : TimeProvider, public database : DatabaseProvider, private messageService : MessageProvider, private push : Push, private platform : Platform) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees : EmployeesProvider, public timeService : TimeProvider, public database : DatabaseProvider, private messageService : MessageProvider, private platform : Platform) {
 
     this.messageService.getMessage().subscribe(data => {
       this.typing = '';

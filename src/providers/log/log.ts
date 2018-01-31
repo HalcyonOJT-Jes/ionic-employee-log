@@ -19,17 +19,17 @@ export class LogProvider {
   custom_log = [];
   time_in_list = [];
   unixMax: any;
-  constructor(private base64: Base64,  private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider) {
+  constructor(private base64: Base64, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider) {
     console.log("Hello Log Provider");
     this.socket.on('sv-notifSeen', (logId) => {
       console.log(logId);
       let temp_log = this.local_log;
-      // temp_log.find(o => {
-      //   if(o._id === logId) o.isSeen = 1;
-      //   return true;
-      // });
+
       temp_log.find((o, i) => {
-        if(o._id === logId) temp_log[i].isSeen = 1;
+        if (o._id === logId.id) {
+          temp_log[i].isSeen = 1;
+        }
+        this.local_log = [];
         this.local_log = temp_log;
         return true;
       });
@@ -231,7 +231,7 @@ export class LogProvider {
     this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
   }
 
-  trackLog(index, log){
+  trackLog(index, log) {
     return log ? log.id : undefined;
   }
 }
