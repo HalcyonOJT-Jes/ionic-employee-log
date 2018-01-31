@@ -1,4 +1,3 @@
-import { Observable } from 'rxjs/Observable';
 import { SQLite, SQLiteObject } from '@ionic-native/sqlite';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';

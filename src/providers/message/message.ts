@@ -5,6 +5,7 @@ import { Socket } from 'ng-socket-io';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { EmployeesProvider } from '../employees/employees';
+import { LocalNotifications } from '@ionic-native/local-notifications';
 /*
   Generated class for the MessageProvider provider.
 
@@ -14,7 +15,14 @@ import { EmployeesProvider } from '../employees/employees';
 @Injectable()
 export class MessageProvider {
   messages = [];
-  constructor(private employees : EmployeesProvider, public http: HttpClient, private socket: Socket, private timeService: TimeProvider, private database : DatabaseProvider) {
+  constructor(private employees : EmployeesProvider, public http: HttpClient, private socket: Socket, private timeService: TimeProvider, private database : DatabaseProvider, public localNotif : LocalNotifications) {
+    
+
+    this.getMessage().subscribe(data => {
+      this.messages.push(data);
+      this.triggerLocalNotif(data);
+    });
+
     console.log('Hello MessageProvider Provider');
     this.loadInitialMessages(employees.currentId).then((data) => {
       console.log("successfully requested initial messages");
@@ -29,7 +37,12 @@ export class MessageProvider {
         i.time = dt.time + " " + dt.am_pm;
         this.messages.push(i);
       }
+      
     });
+  }
+
+  syncMessages () {
+    
   }
 
   loadLocalMessages() {
@@ -71,5 +84,12 @@ export class MessageProvider {
       });
     });
     return observable;
+  }
+
+  triggerLocalNotif(data){
+    this.localNotif.schedule({
+      title : 'New message from Admin',
+      text : data.content
+    });
   }
 }

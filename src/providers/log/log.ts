@@ -1,7 +1,6 @@
 import { ConnectionProvider } from './../connection/connection';
 import { EmployeesProvider } from './../employees/employees';
 import { Socket } from 'ng-socket-io';
-import { Observable } from 'rxjs/Observable';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TimeProvider } from './../time/time';
@@ -20,7 +19,7 @@ export class LogProvider {
   custom_log = [];
   time_in_list = [];
   unixMax: any;
-  constructor(private base64: Base64, private platform: Platform, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider) {
+  constructor(private base64: Base64,  private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider) {
     console.log("Hello Log Provider");
     this.socket.on('sv-notifSeen', (logId) => {
       console.log(logId);

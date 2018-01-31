@@ -7,7 +7,6 @@ import { Component } from '@angular/core';
 import { IonicPage, NavController, LoadingController } from 'ionic-angular';
 import { Socket } from 'ng-socket-io';
 import { EmployeesProvider } from '../../providers/employees/employees';
-import { Observable } from 'rxjs/Observable';
 import { BatteryProvider } from '../../providers/battery/battery';
 import { AlertController } from 'ionic-angular';
 import { LocationProvider } from '../../providers/location/location';

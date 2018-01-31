@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { ErrorHandler, NgModule, ElementRef } from '@angular/core';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
+
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { Camera } from '@ionic-native/camera';
@@ -22,6 +23,9 @@ import { Network } from '@ionic-native/network';
 import { Device } from '@ionic-native/device';
 import { File } from '@ionic-native/file';
 import { Base64 } from '@ionic-native/base64';
+import { BarcodeScanner } from '@ionic-native/barcode-scanner';
+import { OneSignal } from '@ionic-native/onesignal';
+import { LocalNotifications } from '@ionic-native/local-notifications';
 
 import { MyApp } from './app.component';
 import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
@@ -76,7 +80,10 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     StatusProvider,
     MessageProvider,
     File,
-    Base64
+    Base64,
+    BarcodeScanner,
+    OneSignal,
+    LocalNotifications
   ]
 })
 export class AppModule {}

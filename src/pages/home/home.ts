@@ -28,7 +28,7 @@ export class HomePage {
     dismissOnPageChange: true
   });
 
-  constructor(public navCtrl: NavController, private navParams : NavParams, private loader : LoadingController, private socket: Socket, public log: LogProvider, public timeService: TimeProvider, public database: DatabaseProvider,public statusService : StatusProvider, private camera: Camera, private locationService : LocationProvider ) {
+  constructor(public navCtrl: NavController, private loader : LoadingController, public log: LogProvider, public timeService: TimeProvider, public database: DatabaseProvider,public statusService : StatusProvider, private camera: Camera, private locationService : LocationProvider ) {
   }
   
   connect() {
