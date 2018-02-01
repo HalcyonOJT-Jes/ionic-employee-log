@@ -19,22 +19,27 @@ export class MessageProvider {
   maxLocalUnix: number = 0;
   constructor(private employees: EmployeesProvider, public http: HttpClient, private socket: Socket, private timeService: TimeProvider, private database: DatabaseProvider, public localNotif: LocalNotifications, private connectionService: ConnectionProvider) {
 
-
     this.getMessage().subscribe(data => {
       this.messages.push(data);
     });
 
-    console.log('Hello MessageProvider Provider');
     this.database._dbready.subscribe((ready) => {
       if (ready) {
-        if (this.connectionService.connection) {
-          this.socket.emit('cl-getInitMessages', { employeeId: this.employees.currentId });
-          this.loadLocalMessages(false);
-        } else {
-          this.loadLocalMessages(true);
-        }
+        this.getInitMessages();
       }
     });
+
+    this.connectionService.network.onchange().subscribe(() => {
+      if(this.connectionService.network.type != 'none'){
+        console.log("yay");
+        console.log(this.connectionService.network.type);
+        this.messages = [];
+        this.getInitMessages();
+      }
+    });
+
+    console.log('Hello MessageProvider Provider');
+    
 
     this.socket.on('sv-sendInitMessages', (data) => {
       let maxRemoteUnix: number = 0;
@@ -47,6 +52,15 @@ export class MessageProvider {
       this.syncMessages(maxRemoteUnix, data);
 
     });
+  }
+
+  getInitMessages(){
+    if (this.connectionService.connection) {
+      this.socket.emit('cl-getInitMessages', { employeeId: this.employees.currentId });
+      this.loadLocalMessages(false);
+    } else {
+      this.loadLocalMessages(true);
+    }
   }
 
   syncMessages(remoteUnix, remoteMessages) {

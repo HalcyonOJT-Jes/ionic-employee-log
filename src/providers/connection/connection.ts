@@ -17,7 +17,7 @@ export class ConnectionProvider {
   networkType: string;
   connection : boolean;
 
-  constructor(private alertCtrl: AlertController, public http: HttpClient, public network: Network, private socket: Socket, public employees: EmployeesProvider, public toast: ToastController, public platform: Platform) {
+  constructor(private alertCtrl: AlertController, public http: HttpClient, public network: Network, public socket: Socket, public employees: EmployeesProvider, public toast: ToastController, public platform: Platform) {
     console.log('Hello ConnectionProvider Provider');
     console.log("----------initial connection-------");
     this.connection = true;
@@ -44,7 +44,6 @@ export class ConnectionProvider {
 
     this.socket.on('reconnect_attempt', () => {
       console.log("trying to reconnect");
-      console.log(this.connection);
     });
 
     this.socket.on('reconnect', () => {

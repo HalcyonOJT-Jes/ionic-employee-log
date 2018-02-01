@@ -42,7 +42,6 @@ export class ChatPage {
 
   userTyping() {
     this.socket.emit('cl-typing', { isEmployee: true });
-    console.log('Im typing');
   }
 
   typeTimeout() {

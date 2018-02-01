@@ -29,7 +29,7 @@ export class StatusProvider {
           location : {
             formattedAddress: this.locationService.location,
             lat: this.locationService.lat,
-            long: this.locationService.long,
+            lng: this.locationService.long,
           },
           connection: this.connectionService.network.type,
           phone : {

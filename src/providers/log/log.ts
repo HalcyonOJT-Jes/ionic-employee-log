@@ -7,6 +7,8 @@ import { TimeProvider } from './../time/time';
 import { DatabaseProvider } from '../database/database';
 import { Platform } from 'ionic-angular/platform/platform';
 import { Base64 } from '@ionic-native/base64';
+import { Observable } from 'rxjs/Observable';
+import { LocationProvider } from '../location/location';
 /*
   Generated class for the LogProvider provider.
 
@@ -19,22 +21,34 @@ export class LogProvider {
   custom_log = [];
   time_in_list = [];
   unixMax: any;
-  constructor(private base64: Base64, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider) {
+  constructor(private base64: Base64, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private locationService : LocationProvider) {
     console.log("Hello Log Provider");
     this.socket.on('sv-notifSeen', (logId) => {
       console.log(logId);
       let temp_log = this.local_log;
 
       temp_log.find((o, i) => {
+        console.log(o);
         if (o._id === logId.id) {
           temp_log[i].isSeen = 1;
         }
+        console.log(this.local_log);
         this.local_log = [];
+        console.log(this.local_log);
         this.local_log = temp_log;
+        console.log(this.local_log);
         return true;
       });
-
     });
+
+    this.logEntry().subscribe((data : {id : string, timeIn : number, formattedAddress : string}) => {
+      console.log("log entry");
+      if (data.id) {
+        console.log("pushing log to log array");
+        this.pushLog(data.id, data.timeIn, data.formattedAddress);
+      }
+    });
+
 
     this.database._dbready.subscribe((ready) => {
       // console.log(ready);
@@ -59,8 +73,6 @@ export class LogProvider {
         });
       });
     });
-
-
   }
 
   findUnixMax() {
@@ -233,5 +245,29 @@ export class LogProvider {
 
   trackLog(index, log) {
     return log ? log.id : undefined;
+  }
+
+  logEntry() {
+    let obs = new Observable((observable) => {
+      this.socket.on('sv-successTimeIn', (data) => {
+        observable.next(data);
+      });
+    });
+    return obs;
+  }
+
+  pushLog(id, t, location) {
+    //push to log array
+    let dt = this.timeService.getDateTime(t * 1000);
+    this.local_log.unshift({
+      id : id,
+      time: dt.time + " " + dt.am_pm,
+      date: dt.date,
+      map: {
+        formattedAddress: location
+      },
+      isSeen: false
+    });
+    console.log("log pushed");
   }
 }

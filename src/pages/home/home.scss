@@ -5,7 +5,7 @@ page-home {
     .today{
         padding: 10vw 0 10vw;
         text-align: center;
-        color: white;
+        color: $white;
         .date{
             font-size: 4vw;
         }
@@ -20,6 +20,28 @@ page-home {
         }
         button{
             width: 100%;
+            color: #151f2b;
+        }
+    }
+
+    .log-list{
+        color : #24344b;
+        .date{
+            font-size: 1.2em;
+        }
+        .location{
+            font-size: .9em;
+        }
+        .badge-outer{
+            margin: 0 auto;
+            .badge{
+                font-size: .8em;
+                text-align: center;
+                background : #24344b;
+                color: $white;
+                padding : 2vw;
+                border-radius: 4vw;
+            }
         }
     }
 }

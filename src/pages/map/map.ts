@@ -11,6 +11,7 @@ import {
 } from '@ionic-native/google-maps';
 import { NativeGeocoder, NativeGeocoderReverseResult } from '@ionic-native/native-geocoder';
 import { EmployeesProvider } from '../../providers/employees/employees';
+import { LoadingController } from 'ionic-angular/components/loading/loading-controller';
 
 @IonicPage()
 @Component({
@@ -18,10 +19,13 @@ import { EmployeesProvider } from '../../providers/employees/employees';
   templateUrl: 'map.html',
 })
 export class MapPage {
+  mapTapLoader = this.loader.create({
+    content : 'Sending location. Please Wait.'
+  });
 
   @ViewChild('canvas') mapElement: ElementRef;
   map: GoogleMap;
-  constructor(public navCtrl: NavController, public navParams: NavParams, private locationService: LocationProvider, private platform: Platform, private googleMaps: GoogleMaps, private socket : Socket, private nativeGeocoder: NativeGeocoder ) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private locationService: LocationProvider, private platform: Platform, private googleMaps: GoogleMaps, private socket : Socket, private nativeGeocoder: NativeGeocoder, private loader : LoadingController ) {
     this.platform.ready().then(() => {
 
       this.loadMap(this.locationService.lat, this.locationService.long).then(() => {
@@ -52,8 +56,9 @@ export class MapPage {
       this.map.one(GoogleMapsEvent.MAP_READY)
         .then(() => {
           console.log('Map is ready!');
-
+          
           this.map.on(GoogleMapsEvent.MAP_CLICK).subscribe((latLng) => {
+            this.mapTapLoader.present();
             console.log("clicked");
             console.log(latLng);
             this.map.addMarker({
@@ -64,6 +69,7 @@ export class MapPage {
                 lng : latLng[0].lng
               }
             }).then(() => {
+              this.mapTapLoader.dismiss();
               this.nativeGeocoder.reverseGeocode(latLng[0].lat, latLng[0].lng).then((result: NativeGeocoderReverseResult) => {
                 let formattedAddress : string = '';
                 for(let v in result){
