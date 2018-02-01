@@ -43,6 +43,7 @@
     "com-badrit-base64": "^0.2.0",
     "cordova-android": "^6.3.0",
     "cordova-browser": "~5.0.3",
+    "cordova-plugin-add-swift-support": "^1.7.1",
     "cordova-plugin-badge": "^0.8.7",
     "cordova-plugin-battery-status": "^2.0.1",
     "cordova-plugin-camera": "^4.0.1",
@@ -50,6 +51,7 @@
     "cordova-plugin-file": "^6.0.1",
     "cordova-plugin-geolocation": "^4.0.1",
     "cordova-plugin-googlemaps": "^2.1.1",
+    "cordova-plugin-googlemaps-sdk": "git+https://github.com/mapsplugin/cordova-plugin-googlemaps-sdk.git",
     "cordova-plugin-ionic-webview": "^1.1.16",
     "cordova-plugin-local-notification": "^0.9.0-beta.2",
     "cordova-plugin-nativegeocoder": "^2.0.5",
@@ -67,7 +69,8 @@
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.4",
     "sw-toolbox": "3.6.0",
-    "zone.js": "0.8.18"
+    "zone.js": "0.8.18",
+    "cordova-ios": "~4.5.4"
   },
   "devDependencies": {
     "@angular/cli": "^1.6.6",
@@ -102,7 +105,8 @@
     },
     "platforms": [
       "browser",
-      "android"
+      "android",
+      "ios"
     ]
   }
 }

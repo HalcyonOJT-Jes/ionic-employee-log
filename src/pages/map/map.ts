@@ -9,6 +9,7 @@ import {
   GoogleMapsEvent,
   GoogleMapOptions,
 } from '@ionic-native/google-maps';
+import { NativeGeocoder, NativeGeocoderReverseResult } from '@ionic-native/native-geocoder';
 import { EmployeesProvider } from '../../providers/employees/employees';
 
 @IonicPage()
@@ -20,9 +21,10 @@ export class MapPage {
 
   @ViewChild('canvas') mapElement: ElementRef;
   map: GoogleMap;
-  constructor(public navCtrl: NavController, public navParams: NavParams, private locationServices: LocationProvider, private platform: Platform, private googleMaps: GoogleMaps, private socket : Socket) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private locationService: LocationProvider, private platform: Platform, private googleMaps: GoogleMaps, private socket : Socket, private nativeGeocoder: NativeGeocoder ) {
     this.platform.ready().then(() => {
-      this.loadMap(this.locationServices.lat, this.locationServices.long).then(() => {
+
+      this.loadMap(this.locationService.lat, this.locationService.long).then(() => {
         console.log("success");
       }).catch(e => {
         console.log(e);
@@ -62,10 +64,26 @@ export class MapPage {
                 lng : latLng[0].lng
               }
             }).then(() => {
-              this.socket.emit('cl-myCurrentStatus', {
-                lat : latLng[0].lat,
-                lng : latLng[0].lng
+              this.nativeGeocoder.reverseGeocode(latLng[0].lat, latLng[0].lng).then((result: NativeGeocoderReverseResult) => {
+                let formattedAddress : string = '';
+                for(let v in result){
+                  if(result.hasOwnProperty(v)){
+                    if(result[v] != undefined) formattedAddress += result[v] + " ";
+                  }
+                }
+                console.log(formattedAddress);
+
+                this.socket.emit('cl-myCurrentStatus', {
+                  location : {
+                    lat : latLng[0].lat,
+                    lng : latLng[0].lng,
+                    formattedAddress : formattedAddress
+                  }
+                });
+              }).catch((error: any) => {
+                console.log(error);
               });
+              
             }).catch(e => {
               console.log(e);
             });
