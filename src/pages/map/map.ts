@@ -61,12 +61,7 @@ export class MapPage {
                 lat : latLng[0].lat,
                 lng : latLng[0].lng
               }
-            }).then(marker => {
-              marker.on(GoogleMapsEvent.MARKER_CLICK)
-              .subscribe(() => {
-                alert('clicked');
-              });
-
+            }).then(() => {
               this.socket.emit('cl-myCurrentStatus', {
                 lat : latLng[0].lat,
                 lng : latLng[0].lng
