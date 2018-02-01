@@ -2,11 +2,12 @@ import { Socket } from 'ng-socket-io';
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, AlertController } from 'ionic-angular';
 
+@IonicPage()
 @Component({
-  selector: 'page-home',
-  templateUrl: 'home.html'
+  selector: 'page-login',
+  templateUrl: 'login.html'
 })
-export class HomePage {
+export class LoginPage {
   demos = [
     {id : 1, name : "Demo 1"},
     {id : 2, name : "Demo 2"},
