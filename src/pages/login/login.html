@@ -5,7 +5,7 @@
     <div id="demo_list_outer">
       <div id="demo_list_inner">
         <ion-list>
-          <ion-item *ngFor="let demo of demos" (click)="startDemo(demo.id)">
+          <ion-item *ngFor="let demo of demos" (click)="startDemo(demo.id, demo.name)">
             {{ demo.name }}
             <ion-icon item-end name="arrow-forward"></ion-icon>
           </ion-item>
