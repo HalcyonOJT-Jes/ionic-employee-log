@@ -36,20 +36,16 @@ export class LogProvider {
   constructor(private base64: Base64, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private locationService: LocationProvider, private toast: ToastController) {
     console.log("Hello Log Provider");
     this.socket.on('sv-notifSeen', (logId) => {
-      console.log(logId);
       let temp_log = this.local_log;
 
       temp_log.find((o, i) => {
-        console.log(o);
+        console.log(o._id + " = " + logId.id);
         if (o._id === logId.id) {
-          temp_log[i].isSeen = 1;
+          temp_log[i].isSeen = true;
+          this.local_log = [];
+          this.local_log = temp_log;
+          return true;
         }
-        console.log(this.local_log);
-        this.local_log = [];
-        console.log(this.local_log);
-        this.local_log = temp_log;
-        console.log(this.local_log);
-        return true;
       });
     });
 
@@ -72,11 +68,11 @@ export class LogProvider {
       console.log(this.connectionService.connection);
       if (this.connectionService.connection) {
         this.local_log = [];
-          console.log("cl-getInitNotifEmployee");
-          this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
-        } else {
-          this.getLocalLogs();
-        }
+        console.log("cl-getInitNotifEmployee");
+        this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
+      } else {
+        this.getLocalLogs();
+      }
       // }
     });
 

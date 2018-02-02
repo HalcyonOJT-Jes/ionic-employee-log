@@ -12,7 +12,7 @@ import { OneSignal } from '@ionic-native/onesignal';
 })
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
-  rootPage:string = 'LoginPage';
+  rootPage:string = 'HomePage';
   pages: Array<{title: string, component: any}>;
   employeeIds = [];
   
