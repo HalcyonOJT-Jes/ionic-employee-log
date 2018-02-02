@@ -111,8 +111,6 @@ export class MapPage {
                   alert('clicked');
                 });
             });
-
-
         }).catch(e => {
           console.log(e);
         });
