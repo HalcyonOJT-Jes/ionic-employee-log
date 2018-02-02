@@ -7,6 +7,9 @@ import { TimeProvider } from './../time/time';
 import { DatabaseProvider } from '../database/database';
 import { Platform } from 'ionic-angular/platform/platform';
 import { Base64 } from '@ionic-native/base64';
+import { Observable } from 'rxjs/Observable';
+import { LocationProvider } from '../location/location';
+import { ToastController } from 'ionic-angular/components/toast/toast-controller';
 /*
   Generated class for the LogProvider provider.
 
@@ -19,21 +22,62 @@ export class LogProvider {
   custom_log = [];
   time_in_list = [];
   unixMax: any;
-  constructor(private base64: Base64, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider) {
+  exportCounter: number = 0;
+  exportMax: number;
+  syncStart = this.toast.create({
+    message: 'Syncing logs.'
+  });
+
+  syncEnd = this.toast.create({
+    message: 'Log sync complete.',
+    duration: 3000
+  })
+
+  constructor(private base64: Base64, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private locationService: LocationProvider, private toast: ToastController) {
     console.log("Hello Log Provider");
     this.socket.on('sv-notifSeen', (logId) => {
       console.log(logId);
       let temp_log = this.local_log;
 
       temp_log.find((o, i) => {
+        console.log(o);
         if (o._id === logId.id) {
           temp_log[i].isSeen = 1;
         }
+        console.log(this.local_log);
         this.local_log = [];
+        console.log(this.local_log);
         this.local_log = temp_log;
+        console.log(this.local_log);
         return true;
       });
+    });
 
+    this.logEntry().subscribe((data: { id: string, timeIn: number, formattedAddress: string }) => {
+      if (++this.exportCounter == this.exportMax) {
+        this.syncEnd.present();
+        this.syncStart.dismiss();
+      }
+
+      if (data.id) {
+        console.log("pushing log to log array");
+        this.pushLog(data.id, data.timeIn, data.formattedAddress);
+      }
+    });
+
+    this.connectionService.network.onConnect().subscribe(() => {
+      console.log("reconnect subscription");
+      console.log(this.connectionService.reconnect_attemps);
+      // if(this.connectionService.reconnect_attemps > 0){
+      console.log(this.connectionService.connection);
+      if (this.connectionService.connection) {
+        this.local_log = [];
+          console.log("cl-getInitNotifEmployee");
+          this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
+        } else {
+          this.getLocalLogs();
+        }
+      // }
     });
 
     this.database._dbready.subscribe((ready) => {
@@ -59,8 +103,6 @@ export class LogProvider {
         });
       });
     });
-
-
   }
 
   findUnixMax() {
@@ -135,17 +177,11 @@ export class LogProvider {
     });
   }
 
-  syncLogs(maxUnix, remoteLogs) {
-    // console.log("syncLogs started");
-    return new Promise((resolve, reject) => {
-      //IMPORT
-      //initialize month and isSeen bool to int conversion
-      //check the local log table if current remote log exists
-      //NOTE : COULD HAPPEN IF A USER USES A DIFFERENT PHONE
-      // console.log("import started");
-      // console.log(remoteLogs);
+  import(remoteLogs) {
+    return new Promise(resolve => {
+      let c = 0;
+      let l = remoteLogs.length;
       for (let log of remoteLogs) {
-        // console.log(log);
         let month = new Date(log.timeIn).getMonth();
         let isSeen = log.isSeen == true ? 1 : 0;
 
@@ -171,19 +207,20 @@ export class LogProvider {
               } else console.log("current log is updated; skipping.");
             }
           }
+          if (++c == l) resolve();
         }).catch(e => {
           console.log(e);
         });
-
       }
+    });
+  }
 
-      //EXPORT
-      //get unsent local logs
-      //check connection
-      //*convert png image to b64
-      //send
+  export(maxUnix) {
+    return new Promise(resolve => {
       this.database.db.executeSql('select * from log where timeIn > ' + maxUnix, {}).then((data) => {
+        this.exportMax = data.rows.length;
         if (data.rows.length > 0) {
+          console.log("exportMax > 0");
           for (let i = 0; i < data.rows.length; i++) {
             if (this.connectionService.connection) {
               console.log("sending local log to server");
@@ -208,9 +245,40 @@ export class LogProvider {
               });
 
             }
-
           }
+        } else {
+          console.log("exportMax  < 0");
+          this.syncStart.dismiss();
+          this.syncEnd.present();
+          resolve();
         }
+      });
+    });
+  }
+
+  syncLogs(maxUnix, remoteLogs) {
+    // console.log("syncLogs started");
+    return new Promise((resolve, reject) => {
+      this.syncStart.present();
+      //IMPORT
+      //initialize month and isSeen bool to int conversion
+      //check the local log table if current remote log exists
+      //NOTE : COULD HAPPEN IF A USER USES A DIFFERENT PHONE
+      // console.log("import started");
+      // console.log(remoteLogs);
+      this.import(remoteLogs).then(() => {
+        //EXPORT
+        //get unsent local logs
+        //check connection
+        //*convert png image to b64
+        //send
+        this.export(maxUnix).then(() => {
+          console.log("export -> then");
+        }).catch(e => {
+          console.log(e);
+        });
+      }).catch(e => {
+        console.log(e);
       });
     });
   }
@@ -233,5 +301,29 @@ export class LogProvider {
 
   trackLog(index, log) {
     return log ? log.id : undefined;
+  }
+
+  logEntry() {
+    let obs = new Observable((observable) => {
+      this.socket.on('sv-successTimeIn', (data) => {
+        observable.next(data);
+      });
+    });
+    return obs;
+  }
+
+  pushLog(id, t, location) {
+    //push to log array
+    let dt = this.timeService.getDateTime(t * 1000);
+    this.local_log.unshift({
+      _id: id,
+      time: dt.time + " " + dt.am_pm,
+      date: dt.date,
+      map: {
+        formattedAddress: location
+      },
+      isSeen: false
+    });
+    console.log("log pushed");
   }
 }

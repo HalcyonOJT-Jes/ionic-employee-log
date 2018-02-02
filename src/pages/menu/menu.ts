@@ -41,18 +41,12 @@ export class MenuPage {
   });
 
   constructor(private file: File, private connectionService: ConnectionProvider, public alertCtrl: AlertController, public navCtrl: NavController, private socket: Socket, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider, private logService: LogProvider) {
-    this.socket.on('sv-successTimeIn', (data) => {
-      if (data.success) {
-        this.sendLoading.dismiss().then(() => {
-          this.alert.present();
-        }).catch(() => {
-          this.alert.setTitle('Failed.')
-            .setSubTitle('Unable to connect to server. Your log will be sent once connected to server.')
-            .present();
-        });
-      }
+    this.logService.logEntry().subscribe(() => {
+      console.log("presented loading");
+      this.sendLoading.dismiss().then(() => {
+        this.alert.present();
+      });
     });
-
   }
 
   send() {
@@ -65,9 +59,9 @@ export class MenuPage {
     //save image to gallery
     console.log('saving image');
     this.saveBase64(this.database.base64Image, this.employeeId.currentId + "_" + t).then((filename) => {
-    console.log("IMAGE SAVED : " + filename);
+      console.log("IMAGE SAVED : " + filename);
       //save log to local database
-      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus, pic) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + this.locationService.lat + ', ' + this.locationService.long + ', "' + this.locationService.location + '",' + this.batteryService.currBattery + ', "'+ filename +'")', {}).then(() => {
+      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus, pic) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + this.locationService.lat + ', ' + this.locationService.long + ', "' + this.locationService.location + '",' + this.batteryService.currBattery + ', "' + filename + '")', {}).then(() => {
         console.log('log added');
 
         if (this.connectionService.connection) {
@@ -88,20 +82,19 @@ export class MenuPage {
           });
         } else {
           this.sendLoading.dismiss().then(() => {
-            this.alert.present();
+            this.alert.setSubTitle('Log saved to local.').present();
+            let dt = this.timeService.getDateTime(t * 1000);
+            let nm = {
+              time : dt.time + " " + dt.am_pm,
+              date: dt.date,
+              map: {
+                formattedAddress: this.locationService.location
+              },
+              isSeen: false
+            }
+            this.logService.local_log.unshift(nm);
           })
         }
-
-        //push to log array
-        let dt = this.timeService.getDateTime(t * 1000);
-        this.logService.local_log.unshift({
-          time: dt.time + " " + dt.am_pm,
-          date: dt.date,
-          map: {
-            formattedAddress: this.locationService.location
-          },
-          isSeen: false
-        });
       }).catch(e => {
         console.log(e);
       });

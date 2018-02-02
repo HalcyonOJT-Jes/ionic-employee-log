@@ -23,14 +23,18 @@
     <ion-row>
       <ion-col col-10 offset-1 class="log-list">
         <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i; trackBy : log.trackLog">
-          <ion-col col-1 style="white-space:nowrap;">{{ c - i }}</ion-col>
-          <ion-col col-8>
+          <ion-col col-2 style="white-space:nowrap;">
+            <div class="badge-outer">
+                <span class="badge"><span>{{ c - i }}</span></span>
+            </div>
+          </ion-col>
+          <ion-col col-7>
             <div class="date">{{ l.date }}</div>
             <div class="location">{{ l.map.formattedAddress }}</div>
           </ion-col>
           <ion-col col-3>
             <span class="time"> {{ l.time }}</span>
-            <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true || l.isSeen == 1) ? 'seen' : '' "></ion-icon>
+            <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true || l.isSeen == 1) ? 'seen' : 'not-seen' "></ion-icon>
           </ion-col>
         </ion-row>
       </ion-col>

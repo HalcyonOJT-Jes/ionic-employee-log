@@ -48,11 +48,11 @@ export class DatabaseProvider {
           --isSeen
           --pic
         */
-        // db.executeSql('create table if not exists log(logId varchar(255), timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic varchar(255))', {}).then(() => {
-        //   console.log('Created log table')
-        // }).catch(e => {
-        //   console.log(e);
-        // });
+        db.executeSql('create table if not exists log(logId varchar(255), timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic varchar(255))', {}).then(() => {
+          console.log('Created log table')
+        }).catch(e => {
+          console.log(e);
+        });
 
         /* message table creation */
         /*
@@ -62,11 +62,11 @@ export class DatabaseProvider {
           --content
           --isMe
         */
-        // db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, content varchar(255), isMe INTEGER)', {}).then(() => {
-        //   console.log('Created message table')
-        // }).catch(e => {
-        //   console.log(e);
-        // });
+        db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, content varchar(255), isMe INTEGER)', {}).then(() => {
+          console.log('Created message table')
+        }).catch(e => {
+          console.log(e);
+        });
         //////////////////////
         //custom sqls 
         // db.executeSql('delete from log where isSeen is null',{}).then(() =>{

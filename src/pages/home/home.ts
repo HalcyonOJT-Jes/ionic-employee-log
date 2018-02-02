@@ -20,7 +20,8 @@ export class HomePage {
     destinationType: this.camera.DestinationType.DATA_URL,
     encodingType: this.camera.EncodingType.JPEG,
     mediaType: this.camera.MediaType.PICTURE,
-    cameraDirection: 1
+    cameraDirection: 1,
+    correctOrientation : true
   }
 
   openMapLoading = this.loader.create({

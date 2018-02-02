@@ -14,10 +14,6 @@
     </ion-col>
   </ion-row>
   <span class="location" *ngIf="locationService.location"><ion-icon name="pin"></ion-icon>: {{ locationService.location }}</span>
-  <ion-item *ngIf="database.base64Image">
-    <ion-label floating>Message</ion-label>
-    <ion-input [(ngModel)]="message"></ion-input>
-  </ion-item>
 </ion-content>
 
 <ion-footer >

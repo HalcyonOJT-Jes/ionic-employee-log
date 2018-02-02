@@ -31,8 +31,8 @@ export class MyApp {
       { title : 'Home', component: 'HomePage'},
       { title : 'Log', component: 'LogPage'},
       { title : 'Chat', component: 'ChatPage'},
-      { title : 'Scan', component : 'ScanPage'},
-      { title : 'Map', component : 'MapPage'}
+      { title : 'Barcode Scanner', component : 'ScanPage'},
+      { title : 'Location Simulation', component : 'MapPage'}
     ];
 
     this.messages.localNotif.on('click', () => {

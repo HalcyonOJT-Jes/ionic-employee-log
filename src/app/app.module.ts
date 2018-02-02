@@ -41,6 +41,7 @@ import { DeviceProvider } from '../providers/device/device';
 import { StatusProvider } from '../providers/status/status';
 import { MessageProvider } from '../providers/message/message';
 
+// const config: SocketIoConfig = { url: 'https://socket-io-use.herokuapp.com/', options: {} };
 const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
 // const config: SocketIoConfig = { url: 'http://192.168.1.75:8080', options: {} };
 @NgModule({

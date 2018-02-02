@@ -27,7 +27,7 @@ export class LocationProvider {
           location: {
             formattedAddress: newLocation,
             lat: this.lat,
-            long: this.long
+            lng: this.long
           }
         });
       }
