@@ -5,6 +5,7 @@ import { Network } from '@ionic-native/network';
 import { ToastController, Platform } from 'ionic-angular';
 import { Socket } from 'ng-socket-io';
 import { AlertController } from 'ionic-angular/components/alert/alert-controller';
+import { Observable } from 'rxjs/Observable';
 
 /*
   Generated class for the ConnectionProvider provider.
@@ -16,23 +17,24 @@ import { AlertController } from 'ionic-angular/components/alert/alert-controller
 export class ConnectionProvider {
   networkType: string;
   connection : boolean;
-
+  reconnect_attemps : number = 0;
   constructor(private alertCtrl: AlertController, public http: HttpClient, public network: Network, public socket: Socket, public employees: EmployeesProvider, public toast: ToastController, public platform: Platform) {
     console.log('Hello ConnectionProvider Provider');
     console.log("----------initial connection-------");
     this.connection = true;
     this.network.onConnect().subscribe(() => {
-      console.log("onConnect triggered");
+    this.connection = true;
+    console.log("onConnect triggered");
       this.showConnectionUpdate('connected', 'state-connected');
     });
 
     this.network.onDisconnect().subscribe(() => {
-      this.connection = false;
       this.showConnectionUpdate('disconnected', 'state-disconnected');
     });
 
     this.socket.on('connect_error', () => {
       if (this.connection == true) {
+        this.reconnect_attemps = 0;
         this.connection = false;
         this.alertCtrl.create({
           title: 'Server error',
@@ -43,10 +45,11 @@ export class ConnectionProvider {
     });
 
     this.socket.on('reconnect_attempt', () => {
+      this.reconnect_attemps++;
       console.log("trying to reconnect");
     });
 
-    this.socket.on('reconnect', () => {
+    this.reconnect().subscribe(() => {
       if (this.connection == false) {
         console.log("reconnected; connection is true;");
         this.connection = true;
@@ -71,5 +74,15 @@ export class ConnectionProvider {
       duration: 3000,
       cssClass: _class
     }).present();
+  }
+
+  reconnect(){
+    let obs = new Observable((observer) => {
+      this.socket.on('reconnect', () => {
+
+      });
+      observer.next();
+    });
+    return obs;
   }
 }

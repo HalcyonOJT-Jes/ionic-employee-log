@@ -65,6 +65,20 @@ export class LogProvider {
       }
     });
 
+    this.connectionService.network.onConnect().subscribe(() => {
+      console.log("reconnect subscription");
+      console.log(this.connectionService.reconnect_attemps);
+      // if(this.connectionService.reconnect_attemps > 0){
+      console.log(this.connectionService.connection);
+      if (this.connectionService.connection) {
+        this.local_log = [];
+          console.log("cl-getInitNotifEmployee");
+          this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
+        } else {
+          this.getLocalLogs();
+        }
+      // }
+    });
 
     this.database._dbready.subscribe((ready) => {
       // console.log(ready);
@@ -168,7 +182,6 @@ export class LogProvider {
       let c = 0;
       let l = remoteLogs.length;
       for (let log of remoteLogs) {
-        console.log(log);
         let month = new Date(log.timeIn).getMonth();
         let isSeen = log.isSeen == true ? 1 : 0;
 
@@ -267,9 +280,6 @@ export class LogProvider {
       }).catch(e => {
         console.log(e);
       });
-
-
-
     });
   }
 
@@ -306,7 +316,7 @@ export class LogProvider {
     //push to log array
     let dt = this.timeService.getDateTime(t * 1000);
     this.local_log.unshift({
-      id: id,
+      _id: id,
       time: dt.time + " " + dt.am_pm,
       date: dt.date,
       map: {
