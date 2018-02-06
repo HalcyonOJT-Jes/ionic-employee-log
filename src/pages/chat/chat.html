@@ -10,7 +10,7 @@
 
 
 <ion-content padding>
-  <ion-row *ngFor="let message of messageService.messages">
+  <ion-row *ngFor="let message of messageService.messages; trackBy : trackByFn">
 
     <!-- typing -->
 

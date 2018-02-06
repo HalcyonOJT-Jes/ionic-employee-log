@@ -38,7 +38,7 @@ export class TimeProvider {
   constructor(public http: HttpClient) {
     console.log('Hello TimeProvider Provider');
     this.dateTime = this.getDateTime(new Date().getTime());
-    this.curUnix = Math.floor(Date.now()) / 1000;
+    this.curUnix = Math.floor(Date.now() / 1000) ;
     this.timeFeed();
   }
 

@@ -7,7 +7,6 @@ import { Socket } from 'ng-socket-io';
 import { Observable } from 'rxjs/Observable';
 import { EmployeesProvider } from './../../providers/employees/employees';
 import { TimeProvider } from '../../providers/time/time';
-import { Platform } from 'ionic-angular/platform/platform';
 
 @IonicPage()
 @Component({
@@ -21,9 +20,9 @@ export class ChatPage {
   adminTyping = false;
   timeoutTyping: any;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees: EmployeesProvider, public timeService: TimeProvider, public database: DatabaseProvider, private messageService: MessageProvider, private platform: Platform, private connectionService: ConnectionProvider, private toast: ToastController) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees: EmployeesProvider, public timeService: TimeProvider, public database: DatabaseProvider, private messageService: MessageProvider, private connectionService: ConnectionProvider, private toast: ToastController) {
 
-    this.messageService.getMessage().subscribe(data => {
+    this.messageService.getMessage().subscribe(() => {
       this.typing = '';
       this.adminTyping = false;
       this.scrollToBottom();
@@ -86,7 +85,9 @@ export class ChatPage {
     this.database.db.executeSql('insert into message(time, content, isMe) VALUES(' + unix + ', "' + nm.content + '", 1)', {}).then(() => {
       console.log("Messaged saved to local");
       if (this.connectionService.connection) {
-        this.socket.emit('cl-sendNewMessage', nm);
+        this.socket.emit('cl-sendNewMessage', nm, (res) => {
+          console.log(res);
+        });
         console.log("message sent to server");
       } else {
         console.log("connection to the serve cannot be established. message will be sent later.");
@@ -112,5 +113,9 @@ export class ChatPage {
 
   ionViewDidEnter() {
     this.scrollToBottom();
+  }
+
+  trackByFn(index, item) {
+    return index;
   }
 }

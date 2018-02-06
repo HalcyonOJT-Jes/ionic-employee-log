@@ -35,6 +35,12 @@ export class DatabaseProvider {
         // }).catch(e => {
         //   console.log(e);
         // });
+
+        // db.executeSql('drop table message', {}).then(() => {
+        //   console.log("Dropped table : message");
+        // }).catch(e => {
+        //   console.log(e);
+        // });
         /* log table creation */
         /*
           log

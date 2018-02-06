@@ -1,6 +1,4 @@
 import { MessageProvider } from './../providers/message/message';
-import { EmployeesProvider } from './../providers/employees/employees';
-import { Socket } from 'ng-socket-io';
 import { ConnectionProvider } from './../providers/connection/connection';
 import { Component, ViewChild } from '@angular/core';
 import { Nav, Platform } from 'ionic-angular';
@@ -16,7 +14,7 @@ export class MyApp {
   pages: Array<{title: string, component: any}>;
   employeeIds = [];
   
-  constructor(private socket : Socket, platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider) {
+  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider) {
     platform.ready().then(() => {
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
@@ -46,7 +44,6 @@ export class MyApp {
 
   initializeApp(){
     console.log("initializeApp()");
-    this.socket.connect();
   }
 
   initializeOneSignal(){

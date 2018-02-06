@@ -1,4 +1,3 @@
-import { ConnectionProvider } from './../connection/connection';
 import { EmployeesProvider } from './../employees/employees';
 import { Socket } from 'ng-socket-io';
 import { HttpClient } from '@angular/common/http';
@@ -8,14 +7,8 @@ import { DatabaseProvider } from '../database/database';
 import { Platform } from 'ionic-angular/platform/platform';
 import { Base64 } from '@ionic-native/base64';
 import { Observable } from 'rxjs/Observable';
-import { LocationProvider } from '../location/location';
 import { ToastController } from 'ionic-angular/components/toast/toast-controller';
-/*
-  Generated class for the LogProvider provider.
 
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
 @Injectable()
 export class LogProvider {
   local_log = [];
@@ -25,7 +18,8 @@ export class LogProvider {
   exportCounter: number = 0;
   exportMax: number;
   syncStart = this.toast.create({
-    message: 'Syncing logs.'
+    message: 'Syncing logs.',
+    duration: 3000
   });
 
   syncEnd = this.toast.create({
@@ -33,7 +27,7 @@ export class LogProvider {
     duration: 3000
   })
 
-  constructor(private base64: Base64, private connectionService: ConnectionProvider, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private locationService: LocationProvider, private toast: ToastController) {
+  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private toast: ToastController, private platform : Platform) {
     console.log("Hello Log Provider");
     this.socket.on('sv-notifSeen', (logId) => {
       let temp_log = this.local_log;
@@ -52,7 +46,6 @@ export class LogProvider {
     this.logEntry().subscribe((data: { id: string, timeIn: number, formattedAddress: string }) => {
       if (++this.exportCounter == this.exportMax) {
         this.syncEnd.present();
-        this.syncStart.dismiss();
       }
 
       if (data.id) {
@@ -61,42 +54,19 @@ export class LogProvider {
       }
     });
 
-    this.connectionService.network.onConnect().subscribe(() => {
-      console.log("reconnect subscription");
-      console.log(this.connectionService.reconnect_attemps);
-      // if(this.connectionService.reconnect_attemps > 0){
-      console.log(this.connectionService.connection);
-      if (this.connectionService.connection) {
-        this.local_log = [];
-        console.log("cl-getInitNotifEmployee");
-        this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
-      } else {
-        this.getLocalLogs();
-      }
-      // }
-    });
-
-    this.database._dbready.subscribe((ready) => {
-      // console.log(ready);
-      if (ready) {
-        // console.log("yes it is ready");
-        // console.log(this.connectionService.connection);
-        if (this.connectionService.connection) {
-          this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
-        } else {
-          this.getLocalLogs();
-        }
-      }
-    });
-
     this.socket.on('sv-sendInitNotif', data => {
-      this.getRemoteLogs(data).then((logs) => {
-        this.findUnixMax().then((maxUnix) => {
-          console.log("max unix received : " + maxUnix);
-          this.syncLogs(maxUnix, logs).then(() => {
-            console.log("sync complete");
+      console.log("received initial logs");
+      this.database._dbready.subscribe((ready) => {
+        if (ready) {
+          this.getRemoteLogs(data).then((logs) => {
+            this.findUnixMax().then((maxUnix) => {
+              console.log("max unix received : " + maxUnix);
+              this.syncLogs(maxUnix, logs).then(() => {
+                console.log("sync complete");
+              });
+            });
           });
-        });
+        }
       });
     });
   }
@@ -137,25 +107,30 @@ export class LogProvider {
   getLocalLogs() {
     console.log("getting local logs");
     // get existing logs
-    this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log order by timeIn DESC', {}).then((data) => {
-      this.local_log = [];
-      if (data.rows.length > 0) {
-        for (let i = 0; i < data.rows.length; i++) {
-          console.log(data.rows.item(i).timeIn);
-          let dt = this.timeService.getDateTime(data.rows.item(i).timeIn * 1000);
+    this.platform.ready().then(() => {
+      this.database._dbready.subscribe((ready) => {
+        if (ready) {
+          this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log order by timeIn DESC', {}).then((data) => {
+            this.local_log = [];
+            if (data.rows.length > 0) {
+              for (let i = 0; i < data.rows.length; i++) {
+                let dt = this.timeService.getDateTime(data.rows.item(i).timeIn * 1000);
 
-          this.local_log.push({
-            time: dt.time + " " + dt.am_pm,
-            date: dt.date,
-            map: {
-              formattedAddress: data.rows.item(i).formattedAddress
-            },
-            isSeen: data.rows.item(i).isSeen
+                this.local_log.push({
+                  time: dt.time + " " + dt.am_pm,
+                  date: dt.date,
+                  map: {
+                    formattedAddress: data.rows.item(i).formattedAddress
+                  },
+                  isSeen: data.rows.item(i).isSeen
+                });
+              }
+            }
+          }).catch(e => {
+            console.log(e);
           });
         }
-      }
-    }).catch(e => {
-      console.log(e);
+      });
     });
   }
 
@@ -218,33 +193,29 @@ export class LogProvider {
         if (data.rows.length > 0) {
           console.log("exportMax > 0");
           for (let i = 0; i < data.rows.length; i++) {
-            if (this.connectionService.connection) {
-              console.log("sending local log to server");
-              console.log("converting png to base64");
-              this.blobToB64(data.rows.item(i).pic).then((b64) => {
-                console.log("image converted to b64; now uploading to server.");
+            console.log("sending local log to server");
+            console.log("converting png to base64");
+            this.blobToB64(data.rows.item(i).pic).then((b64) => {
+              console.log("image converted to b64; now uploading to server.");
 
-                //send log to server
-                this.socket.emit('cl-timeIn', {
-                  employeeId: this.employeeService.currentId,
-                  timeIn: data.rows.item(i).timeIn,
-                  pic: b64,
-                  map: {
-                    lng: data.rows.item(i).long,
-                    lat: data.rows.item(i).lat
-                  },
-                  batteryStatus: data.rows.item(i).batteryStatus
-                });
-
-              }).catch(e => {
-                console.log(e);
+              //send log to server
+              this.socket.emit('cl-timeIn', {
+                employeeId: this.employeeService.currentId,
+                timeIn: data.rows.item(i).timeIn,
+                pic: b64,
+                map: {
+                  lng: data.rows.item(i).long,
+                  lat: data.rows.item(i).lat
+                },
+                batteryStatus: data.rows.item(i).batteryStatus
               });
 
-            }
+            }).catch(e => {
+              console.log(e);
+            });
           }
         } else {
           console.log("exportMax  < 0");
-          this.syncStart.dismiss();
           this.syncEnd.present();
           resolve();
         }
@@ -253,21 +224,9 @@ export class LogProvider {
   }
 
   syncLogs(maxUnix, remoteLogs) {
-    // console.log("syncLogs started");
     return new Promise((resolve, reject) => {
       this.syncStart.present();
-      //IMPORT
-      //initialize month and isSeen bool to int conversion
-      //check the local log table if current remote log exists
-      //NOTE : COULD HAPPEN IF A USER USES A DIFFERENT PHONE
-      // console.log("import started");
-      // console.log(remoteLogs);
       this.import(remoteLogs).then(() => {
-        //EXPORT
-        //get unsent local logs
-        //check connection
-        //*convert png image to b64
-        //send
         this.export(maxUnix).then(() => {
           console.log("export -> then");
         }).catch(e => {
@@ -296,7 +255,7 @@ export class LogProvider {
   }
 
   trackLog(index, log) {
-    return log ? log.id : undefined;
+    return index;
   }
 
   logEntry() {

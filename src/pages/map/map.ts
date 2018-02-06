@@ -10,7 +10,6 @@ import {
   GoogleMapOptions,
 } from '@ionic-native/google-maps';
 import { NativeGeocoder, NativeGeocoderReverseResult } from '@ionic-native/native-geocoder';
-import { EmployeesProvider } from '../../providers/employees/employees';
 import { LoadingController } from 'ionic-angular/components/loading/loading-controller';
 
 @IonicPage()
@@ -25,7 +24,7 @@ export class MapPage {
 
   @ViewChild('canvas') mapElement: ElementRef;
   map: GoogleMap;
-  constructor(public navCtrl: NavController, public navParams: NavParams, private locationService: LocationProvider, private platform: Platform, private googleMaps: GoogleMaps, private socket : Socket, private nativeGeocoder: NativeGeocoder, private loader : LoadingController ) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private locationService: LocationProvider, private platform: Platform, private socket : Socket, private nativeGeocoder: NativeGeocoder, private loader : LoadingController ) {
     this.platform.ready().then(() => {
 
       this.loadMap(this.locationService.lat, this.locationService.long).then(() => {

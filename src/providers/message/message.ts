@@ -1,3 +1,4 @@
+import { Platform } from 'ionic-angular/platform/platform';
 import { DatabaseProvider } from './../database/database';
 import { TimeProvider } from './../time/time';
 import { Observable } from 'rxjs/Observable';
@@ -6,7 +7,6 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { EmployeesProvider } from '../employees/employees';
 import { LocalNotifications } from '@ionic-native/local-notifications';
-import { ConnectionProvider } from '../connection/connection';
 /*
   Generated class for the MessageProvider provider.
 
@@ -17,124 +17,157 @@ import { ConnectionProvider } from '../connection/connection';
 export class MessageProvider {
   messages = [];
   maxLocalUnix: number = 0;
-  constructor(private employees: EmployeesProvider, public http: HttpClient, private socket: Socket, private timeService: TimeProvider, private database: DatabaseProvider, public localNotif: LocalNotifications, private connectionService: ConnectionProvider) {
+  maxRemoteUnix: number = 0;
+  constructor(private employees: EmployeesProvider, public http: HttpClient, private socket: Socket, private timeService: TimeProvider, private database: DatabaseProvider, public localNotif: LocalNotifications, private platform: Platform) {
 
-    this.getMessage().subscribe(data => {
-      this.messages.push(data);
-    });
-
-    this.database._dbready.subscribe((ready) => {
-      if (ready) {
-        this.getInitMessages();
-      }
-    });
-
-    this.connectionService.network.onchange().subscribe(() => {
-      if(this.connectionService.network.type != 'none'){
-        console.log("yay");
-        console.log(this.connectionService.network.type);
-        this.messages = [];
-        this.getInitMessages();
-      }
-    });
-
-    console.log('Hello MessageProvider Provider');
-    
-
-    this.socket.on('sv-sendInitMessages', (data) => {
-      let maxRemoteUnix: number = 0;
-      for (let i of data) {
-        let dt = this.timeService.getDateTime(i.sentAt * 1000);
-        i.time = dt.time + " " + dt.am_pm;
-        if (maxRemoteUnix < i.sentAt) maxRemoteUnix = i.sentAt;
-        this.messages.push(i);
-      }
-      this.syncMessages(maxRemoteUnix, data);
-
-    });
-  }
-
-  getInitMessages(){
-    if (this.connectionService.connection) {
-      this.socket.emit('cl-getInitMessages', { employeeId: this.employees.currentId });
-      this.loadLocalMessages(false);
-    } else {
-      this.loadLocalMessages(true);
-    }
-  }
-
-  syncMessages(remoteUnix, remoteMessages) {
-    return new Promise(resolve => {
-      //import
-      console.log("importing messages");
-      for (let msg of remoteMessages) {
-        let isMe = msg.isMe == true ? 1 : 0;
-        this.database.db.executeSql('select time from message where time = ' + msg.sentAt, {}).then((data) => {
-          if (data.rows.length == 0) {
-            this.database.db.executeSql('insert into message(time, content, isMe) values(' + msg.sentAt + ', "' + msg.content + '", ' + isMe + ')');
-          } else console.log("message exists in db. skipping..");
+    this.getMessage().subscribe((data : { sentAt : number, isMe : boolean, time : string, content : string }) => {
+      if (!data.isMe) {
+        this.database.db.executeSql('insert into message(time, content, isMe) values(' + data.sentAt + ', "' + data.content + '", 0)', {}).then(() => {
+          console.log("received messaged saved to local");
+          this.triggerLocalNotif(data);
         }).catch(e => {
-          console.log(e);
+          console.log("failed to save received message");
         });
       }
 
-      //export
-      this.database.db.executeSql("select * from message where time > " + remoteUnix, {}).then((data) => {
-        if (data.rows.length > 0) {
-          console.log("found unsent messages; exporting..");
-          for (let i = 0; i < data.rows.length; i++) {
-            let unix = data.rows.item(i).time;
+      let dt = this.timeService.getDateTime(data.sentAt * 1000);
+      data.time = dt.time + " " + dt.am_pm;
+      this.messages.push(data);
+    });
 
-            let nm = {
-              content: data.rows.item(i).content,
-              isMe: true,
-              employeeId: this.employees.currentId,
-              time: unix
+    this.socket.on('sv-sendInitMessages', (data) => {
+      let c = 0;
+      let d = data.length;
+      for (let i of data) {
+        let dt = this.timeService.getDateTime(i.sentAt * 1000);
+        i.time = dt.time + " " + dt.am_pm;
+        if (this.maxRemoteUnix < i.sentAt) this.maxRemoteUnix = i.sentAt;
+        this.messages.push(i);
+
+        if (++c == d) {
+          this.database._dbready.subscribe((ready) => {
+            if (ready) {
+              this.syncMessages(this.maxRemoteUnix, data);
             }
+          });
+        }
+      }
+    });
+  }
 
-            this.socket.emit('cl-sendNewMessage', nm);
-          }
-        } else {
-          console.log("no unsent message.");
+  requestInitMessages() {
+    this.socket.emit('cl-getInitMessages', { employeeId: this.employees.currentId });
+  }
+
+  getLocalMaxUnix() {
+    return new Promise((resolve, reject) => {
+      this.database.db.executeSql("select time from message order by time desc limit 1", {}).then((data) => {
+        if (data.rows.length > 0) {
+          resolve(data.rows.item(0).time);
+        }
+      }).catch(e => {
+        reject(e);
+      })
+    });
+  }
+
+  getImportables(unix, messages) {
+    return new Promise((resolve, reject) => {
+      messages = messages.reverse();
+      console.log(messages);
+      messages.find((message, i) => {
+        console.log(message.sentAt + " == " + unix);
+        if (message.sentAt <= unix) {
+          console.log("found");
+          let arr = messages.slice(0, i);
+          console.log(arr);
+          resolve(arr);
+          return true;
         }
       });
     });
   }
 
-  loadLocalMessages(willPush) {
-    this.database.db.executeSql('select * from message order by time', {}).then((data) => {
-      if (data.rows.length > 0) {
-        for (let i = 0; i < data.rows.length; i++) {
-          let dt = this.timeService.getDateTime(data.rows.item(i).time * 1000);
-          if (this.maxLocalUnix < data.rows.item(i).time) this.maxLocalUnix = data.rows.item(i).time
-          if (willPush) {
-            this.messages.push({
-              "id": data.rows.item(i).messageId,
-              "time": dt.time + " " + dt.am_pm,
-              "date": dt.date,
-              "content": data.rows.item(i).content,
-              "isMe": data.rows.item(i).isMe
-            });
+  syncMessages(remoteUnix, remoteMessages) {
+    return new Promise(resolve => {
+      this.platform.ready().then(() => {
+        //import
+        //get local unix
+        this.getLocalMaxUnix().then((localMaxUnix) => {
+          console.log("received max local unix : " + localMaxUnix);
+          this.getImportables(localMaxUnix, remoteMessages).then((importables: Array<{ isMe: boolean, sentAt: number, content: string }>) => {
+            if (importables.length > 0) {
+              console.log("found new messages; importing;");
+              for (let msg of importables) {
+                let isMe = msg.isMe == true ? 1 : 0;
+                console.log(msg.sentAt);
+                this.database.db.executeSql('select time from message where time = ' + msg.sentAt, {}).then((data) => {
+                  if (data.rows.length == 0) {
+                    this.database.db.executeSql('insert into message(time, content, isMe) values(' + msg.sentAt + ', "' + msg.content + '", ' + isMe + ')', {}).then(() => {
+                      console.log("message imported : " + msg.content);
+                    });
+                  } else console.log("message exists in db. skipping..");
+                }).catch(e => {
+                  console.log(e);
+                });
+              }
+            } else console.log("messages updated; skipping import;");
+          });
+        });
+
+        //export
+        this.database.db.executeSql("select * from message where time > " + remoteUnix, {}).then((data) => {
+          if (data.rows.length > 0) {
+            console.log("found unsent messages; exporting..");
+            for (let i = 0; i < data.rows.length; i++) {
+              let unix = data.rows.item(i).time;
+
+              let nm = {
+                content: data.rows.item(i).content,
+                isMe: true,
+                employeeId: this.employees.currentId,
+                time: unix
+              }
+
+              this.socket.emit('cl-sendNewMessage', nm);
+            }
+          } else {
+            console.log("no unsent message.");
           }
+        });
+      });
+    });
+  }
+
+  getLocalMessages() {
+    console.log("getting local messages");
+    this.platform.ready().then(() => {
+      this.database._dbready.subscribe((ready) => {
+        if (ready) {
+          this.database.db.executeSql('select * from message order by time', {}).then((data) => {
+            if (data.rows.length > 0) {
+              for (let i = 0; i < data.rows.length; i++) {
+                let dt = this.timeService.getDateTime(data.rows.item(i).time * 1000);
+                this.messages.push({
+                  "id": data.rows.item(i).messageId,
+                  "time": dt.time + " " + dt.am_pm,
+                  "date": dt.date,
+                  "content": data.rows.item(i).content,
+                  "isMe": data.rows.item(i).isMe
+                });
+              }
+            }
+          }).catch(e => {
+            console.log(e);
+          });
         }
-      }
-    }).catch(e => {
-      console.log(e);
+      });
     });
   }
 
   getMessage() {
     let observable = new Observable(observer => {
       this.socket.on('sv-newMessage', (data) => {
-        let dt = this.timeService.getDateTime(data.sentAt * 1000);
-        let isMe = data.isMe == true ? 1 : 0;
-        data.time = dt.time + " " + dt.am_pm;
-        this.database.db.executeSql('insert into message(time, content, isMe) values(' + data.sentAt + ', "' + data.content + '", ' + isMe + ')', {}).then(() => {
-          console.log("received messaged saved to local");
-          if (data.isMe == false) this.triggerLocalNotif(data);
-        }).catch(e => {
-          console.log("failed to save received message");
-        });
         observer.next(data);
       });
     });

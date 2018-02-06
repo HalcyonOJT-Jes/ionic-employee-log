@@ -16,18 +16,18 @@ export class DeviceProvider {
     console.log("Hello Device Provider");
     _platform.ready().then(() => {
       console.log("Device Ready");
-      this.model = device.model;
-      this.platform = device.platform;
-      this.manufacturer = device.manufacturer;
-      this.serial = device.serial;
-      this.uuid = device.uuid;
+      this.model = this.device.model;
+      this.platform = this.device.platform;
+      this.manufacturer = this.device.manufacturer;
+      this.serial = this.device.serial;
+      this.uuid = this.device.uuid;
 
       this.socket.emit('cl-deviceInfo', {
-        model : device.model,
-        platform : device.platform,
-        manufacturer : device.manufacturer,
-        serial : device.serial,
-        uuid : device.uuid
+        model : this.device.model,
+        platform : this.device.platform,
+        manufacturer : this.device.manufacturer,
+        serial : this.device.serial,
+        uuid : this.device.uuid
       });
     });
   }

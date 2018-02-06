@@ -19,7 +19,7 @@ export class MapViewPage {
   @ViewChild('map_canvas') mapElement: ElementRef;
   map: GoogleMap;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private nativeGeocoder: NativeGeocoder, private googleMaps: GoogleMaps, public locationService: LocationProvider) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private nativeGeocoder: NativeGeocoder, public locationService: LocationProvider) {
   }
 
   confirmLocation() {
@@ -37,10 +37,7 @@ export class MapViewPage {
   }
 
   loadMap(lat, long) {
-    return new Promise((res, rej) => {
-      console.log(lat, long);
-      let s = true;
-
+    return new Promise((resolve, reject) => {
       let mapOptions: GoogleMapOptions = {
         camera: {
           target: {
@@ -74,15 +71,12 @@ export class MapViewPage {
                 .subscribe(() => {
                   alert('clicked');
                 });
+                resolve();
             });
-
         }).catch(e => {
           console.log(e);
-          s = false;
+          reject();
         });
-
-      if (s) res(true);
-      else rej(false);
     });
   }
 

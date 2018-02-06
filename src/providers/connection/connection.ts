@@ -6,36 +6,36 @@ import { ToastController, Platform } from 'ionic-angular';
 import { Socket } from 'ng-socket-io';
 import { AlertController } from 'ionic-angular/components/alert/alert-controller';
 import { Observable } from 'rxjs/Observable';
+import { MessageProvider } from '../message/message';
+import { LogProvider } from '../log/log';
 
-/*
-  Generated class for the ConnectionProvider provider.
-
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
 @Injectable()
 export class ConnectionProvider {
   networkType: string;
-  connection : boolean;
-  reconnect_attemps : number = 0;
-  constructor(private alertCtrl: AlertController, public http: HttpClient, public network: Network, public socket: Socket, public employees: EmployeesProvider, public toast: ToastController, public platform: Platform) {
+  connection: boolean = true;
+  constructor(private alertCtrl: AlertController, public http: HttpClient, public network: Network, public socket: Socket, public employees: EmployeesProvider, public toast: ToastController, public platform: Platform, private messageService: MessageProvider, private logService: LogProvider) {
     console.log('Hello ConnectionProvider Provider');
     console.log("----------initial connection-------");
-    this.connection = true;
     this.network.onConnect().subscribe(() => {
-    this.connection = true;
-    console.log("onConnect triggered");
+      this.socket.connect();
+      console.log("onConnect triggered");
       this.showConnectionUpdate('connected', 'state-connected');
     });
 
     this.network.onDisconnect().subscribe(() => {
+      this.connection = false;
       this.showConnectionUpdate('disconnected', 'state-disconnected');
     });
 
     this.socket.on('connect_error', () => {
       if (this.connection == true) {
-        this.reconnect_attemps = 0;
         this.connection = false;
+        console.log("connect_error : connection -> " + this.connection);
+        
+        //get local logs and messages
+        this.messageService.getLocalMessages();
+        this.logService.getLocalLogs();
+
         this.alertCtrl.create({
           title: 'Server error',
           subTitle: 'The server is currently unavailable. Your logs and messages will be sent once connected to server.',
@@ -44,27 +44,32 @@ export class ConnectionProvider {
       }
     });
 
-    this.socket.on('reconnect_attempt', () => {
-      this.reconnect_attemps++;
-      console.log("trying to reconnect");
-    });
+    this.serverConnect().subscribe(() => {
+      //reinitialize
+      //get remote logs and messages
+      this.logService.requestRemoteLogs();
+      this.messageService.requestInitMessages();
 
-    this.reconnect().subscribe(() => {
-      if (this.connection == false) {
-        console.log("reconnected; connection is true;");
-        this.connection = true;
-        this.toast.create({
-          message: "Connected to Server.",
-          showCloseButton: true,
-          closeButtonText: 'Ok',
-          cssClass: 'state-serverConnected'
-        }).present();
-      }
-    });
-
-    this.socket.on('sv-requestEmployeeId', () => {
-      console.log("sv-requestemployeeid");
+      this.connection = true;
       this.socket.emit('cl-sendEmployeeId', { employeeId: this.employees.currentId });
+      this.toast.create({
+        message: "Connected to Server.",
+        cssClass: 'state-serverConnected',
+        duration: 3000
+      }).present();
+    });
+
+    //watch for reconnection attempts
+    this.socket.on('reconnect_attempt', () => {
+      this.connection = false;
+      console.log("trying to reconnect : connection -> " + this.connection);
+    });
+
+    //watch for reconnection
+    this.reconnect().subscribe(() => {
+      console.log("reconnected : connection should be false : connection -> " + this.connection);
+      this.connection = true;
+      console.log("connection set to true");
     });
   }
 
@@ -76,12 +81,21 @@ export class ConnectionProvider {
     }).present();
   }
 
-  reconnect(){
+  reconnect() {
     let obs = new Observable((observer) => {
       this.socket.on('reconnect', () => {
-
+        observer.next();
       });
-      observer.next();
+    });
+    return obs;
+  }
+
+  serverConnect() {
+    let obs = new Observable((observer) => {
+      this.socket.on('sv-requestEmployeeId', () => {
+        console.log("Connected to server");
+        observer.next();
+      });
     });
     return obs;
   }

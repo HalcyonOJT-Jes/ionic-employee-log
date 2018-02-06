@@ -20,7 +20,7 @@ export class BatteryProvider {
   constructor(public http: HttpClient, private socket : Socket, private batteryStatus : BatteryStatus, private platform : Platform) {
     console.log('Hello BatteryProvider Provider');
     this.platform.ready().then(() => {
-      let batteryWatch = this.batteryStatus.onChange().subscribe((status: BatteryStatusResponse) => {
+      this.batteryStatus.onChange().subscribe((status: BatteryStatusResponse) => {
         this.socket.emit('cl-myCurrentStatus', {
           battery:{
             level : status.level,
