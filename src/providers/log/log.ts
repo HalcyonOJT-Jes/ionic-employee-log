@@ -27,7 +27,7 @@ export class LogProvider {
     duration: 3000
   })
 
-  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private toast: ToastController, private platform : Platform) {
+  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private toast: ToastController, private platform: Platform) {
     console.log("Hello Log Provider");
     this.socket.on('sv-notifSeen', (logId) => {
       let temp_log = this.local_log;
@@ -36,7 +36,6 @@ export class LogProvider {
         console.log(o._id + " = " + logId.id);
         if (o._id === logId.id) {
           temp_log[i].isSeen = true;
-          this.local_log = [];
           this.local_log = temp_log;
           return true;
         }
@@ -50,7 +49,13 @@ export class LogProvider {
 
       if (data.id) {
         console.log("pushing log to log array");
+        this.local_log = this.local_log.filter(x => {
+          console.log(x);
+          return x.hasOwnProperty('_id');
+        });
+        
         this.pushLog(data.id, data.timeIn, data.formattedAddress);
+
       }
     });
 
@@ -58,10 +63,11 @@ export class LogProvider {
       console.log("received initial logs");
       this.database._dbready.subscribe((ready) => {
         if (ready) {
-          this.getRemoteLogs(data).then((logs) => {
+          this.getRemoteLogs(data).then((logs: Array<{}>) => {
             this.findUnixMax().then((maxUnix) => {
               console.log("max unix received : " + maxUnix);
               this.syncLogs(maxUnix, logs).then(() => {
+                this.local_log = logs;
                 console.log("sync complete");
               });
             });
@@ -111,12 +117,13 @@ export class LogProvider {
       this.database._dbready.subscribe((ready) => {
         if (ready) {
           this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log order by timeIn DESC', {}).then((data) => {
-            this.local_log = [];
+            let temp = [];
             if (data.rows.length > 0) {
+              let c = 0;
               for (let i = 0; i < data.rows.length; i++) {
                 let dt = this.timeService.getDateTime(data.rows.item(i).timeIn * 1000);
 
-                this.local_log.push({
+                temp.push({
                   time: dt.time + " " + dt.am_pm,
                   date: dt.date,
                   map: {
@@ -124,6 +131,7 @@ export class LogProvider {
                   },
                   isSeen: data.rows.item(i).isSeen
                 });
+                if (++c == data.rows.length) this.local_log = temp;
               }
             }
           }).catch(e => {
@@ -136,14 +144,15 @@ export class LogProvider {
 
   getRemoteLogs(data) {
     return new Promise((resolve, reject) => {
+      let temp = [];
       for (let log of data) {
         let dt = this.timeService.getDateTime(log.timeIn * 1000)
         log.time = dt.time + " " + dt.am_pm;
         log.date = dt.date;
-        this.local_log.push(log);
+        temp.push(log);
         //push to time in list to get the max unix
         this.time_in_list.push(log.timeIn);
-        resolve(data);
+        resolve(temp);
       }
     });
   }
@@ -229,6 +238,7 @@ export class LogProvider {
       this.import(remoteLogs).then(() => {
         this.export(maxUnix).then(() => {
           console.log("export -> then");
+          resolve();
         }).catch(e => {
           console.log(e);
         });

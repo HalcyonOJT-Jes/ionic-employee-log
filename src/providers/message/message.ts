@@ -38,13 +38,15 @@ export class MessageProvider {
     this.socket.on('sv-sendInitMessages', (data) => {
       let c = 0;
       let d = data.length;
+      let temp = [];
       for (let i of data) {
         let dt = this.timeService.getDateTime(i.sentAt * 1000);
         i.time = dt.time + " " + dt.am_pm;
         if (this.maxRemoteUnix < i.sentAt) this.maxRemoteUnix = i.sentAt;
-        this.messages.push(i);
+        temp.push(i);
 
         if (++c == d) {
+          this.messages = temp;
           this.database._dbready.subscribe((ready) => {
             if (ready) {
               this.syncMessages(this.maxRemoteUnix, data);
@@ -145,16 +147,19 @@ export class MessageProvider {
       this.database._dbready.subscribe((ready) => {
         if (ready) {
           this.database.db.executeSql('select * from message order by time', {}).then((data) => {
+            let temp = [];
             if (data.rows.length > 0) {
+              let c = 0;
               for (let i = 0; i < data.rows.length; i++) {
                 let dt = this.timeService.getDateTime(data.rows.item(i).time * 1000);
-                this.messages.push({
+                temp.push({
                   "id": data.rows.item(i).messageId,
                   "time": dt.time + " " + dt.am_pm,
                   "date": dt.date,
                   "content": data.rows.item(i).content,
                   "isMe": data.rows.item(i).isMe
                 });
+                if(++c == data.rows.length) this.messages = temp;
               }
             }
           }).catch(e => {
