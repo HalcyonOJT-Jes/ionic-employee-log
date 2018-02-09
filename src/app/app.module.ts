@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { ErrorHandler, NgModule, ElementRef } from '@angular/core';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
+import { IonicStorageModule } from '@ionic/storage';
 
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
@@ -28,7 +29,6 @@ import { OneSignal } from '@ionic-native/onesignal';
 import { LocalNotifications } from '@ionic-native/local-notifications';
 
 import { MyApp } from './app.component';
-import { SocketIoModule, SocketIoConfig } from 'ng-socket-io';
 
 import { EmployeesProvider } from './../providers/employees/employees';
 import { ConnectionProvider } from '../providers/connection/connection';
@@ -40,11 +40,14 @@ import { BatteryProvider } from '../providers/battery/battery';
 import { DeviceProvider } from '../providers/device/device';
 import { StatusProvider } from '../providers/status/status';
 import { MessageProvider } from '../providers/message/message';
+import { AuthProvider } from '../providers/auth/auth';
+import { SocketProvider } from '../providers/socket/socket';
 
 // const config: SocketIoConfig = { url: 'https://obscure-ridge-49316.herokuapp.com/', options: {} };
 // const config: SocketIoConfig = { url: 'https://socket-io-use.herokuapp.com/', options: {} };
-const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
+// const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: { autoConnect : false } };
 // const config: SocketIoConfig = { url: 'http://192.168.1.75:8080', options: {} };
+
 @NgModule({
   declarations: [
     MyApp
@@ -53,7 +56,7 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     BrowserModule,
     HttpClientModule,
     IonicModule.forRoot(MyApp),
-    SocketIoModule.forRoot(config)
+    IonicStorageModule.forRoot(),
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -85,7 +88,9 @@ const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: {} };
     Base64,
     BarcodeScanner,
     OneSignal,
-    LocalNotifications
+    LocalNotifications,
+    AuthProvider,
+    SocketProvider
   ]
 })
 export class AppModule {}

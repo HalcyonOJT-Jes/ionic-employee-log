@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { NavController, NavParams , IonicPage, LoadingController } from 'ionic-angular';
-import { Socket } from 'ng-socket-io';
 import { TimeProvider } from './../../providers/time/time';
 import { LogProvider } from './../../providers/log/log';
 import { DatabaseProvider } from './../../providers/database/database';
@@ -30,10 +29,6 @@ export class HomePage {
   });
 
   constructor(public navCtrl: NavController, private loader : LoadingController, public log: LogProvider, public timeService: TimeProvider, public database: DatabaseProvider,public statusService : StatusProvider, private camera: Camera, private locationService : LocationProvider ) {
-  }
-  
-  connect() {
-    this.openCamera();
   }
 
   openCamera() {

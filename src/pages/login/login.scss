@@ -1,38 +1,48 @@
 page-login {
-    video{
+    .video-wrapper{
         position: fixed;
+        z-index: -100;
         top: 50%;
         left: 50%;
-        min-width: 50%;
-        min-height: 50%;
-        width: auto;
-        height: auto;
-        z-index: -100;
         transform: translateX(-50%) translateY(-50%);
+        
+        video{
+            min-width: 50%;
+            min-height: 50%;
+            width: auto;
+            height: auto;
+        }
+
+        .overlay{
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom : 0;
+            background: rgba(24, 24, 24, 0.426);
+        }
     }
     
-    .parent{
-        background: rgba(24, 24, 24, 0.426);
-        height: 100%;
-    }
+
     #title{
         text-align: center;
         padding: 20% 5%;
         font-size: 5em;
         color: #dfdfdf;
+        font-weight: 700;
         span{
-            font-weight: 700;
+            font-weight: 100;
         }
     }
-    #demo_list_outer{
-        width: 100%;
-    }
-    #demo_list_inner{
-        margin: 0 auto;
-        width: 70%;
-        ion-item{
-            background: transparent;
-            color: #dfdfdf;
-        }
+
+    #login{
+            width: 70%;
+            margin: 0 auto;
+            ion-item{
+                color: #dfdfdf;
+                background: transparent;
+                padding: 0;
+            }
+            button {
+                color: #dfdfdf;
+                margin-top: 20px;
+            }
     }
 }

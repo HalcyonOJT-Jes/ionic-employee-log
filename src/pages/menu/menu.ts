@@ -1,3 +1,4 @@
+import { SocketProvider } from './../../providers/socket/socket';
 import { File } from '@ionic-native/file';
 import { ConnectionProvider } from './../../providers/connection/connection';
 import { LogProvider } from './../../providers/log/log';
@@ -5,7 +6,6 @@ import { DatabaseProvider } from './../../providers/database/database';
 import { TimeProvider } from './../../providers/time/time';
 import { Component } from '@angular/core';
 import { IonicPage, NavController, LoadingController } from 'ionic-angular';
-import { Socket } from 'ng-socket-io';
 import { EmployeesProvider } from '../../providers/employees/employees';
 import { BatteryProvider } from '../../providers/battery/battery';
 import { AlertController } from 'ionic-angular';
@@ -40,7 +40,7 @@ export class MenuPage {
     }]
   });
 
-  constructor(private file: File, private connectionService: ConnectionProvider, public alertCtrl: AlertController, public navCtrl: NavController, private socket: Socket, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider, private logService: LogProvider) {
+  constructor(private file: File, private connectionService: ConnectionProvider, public alertCtrl: AlertController, public navCtrl: NavController, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider, private logService: LogProvider, private socketService : SocketProvider) {
     this.logService.logEntry().subscribe(() => {
       console.log("presented loading");
       this.sendLoading.dismiss().then(() => {
@@ -67,7 +67,7 @@ export class MenuPage {
         if (this.connectionService.connection) {
           console.log("sending to server");
           //send log to server
-          this.socket.emit('cl-timeIn', {
+          this.socketService.socket.emit('cl-timeIn', {
             employeeId: this.employeeId.currentId,
             timeIn: t,
             pic: this.database.base64Image,

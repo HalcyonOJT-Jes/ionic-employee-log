@@ -1,7 +1,5 @@
 page-home {
     overflow: hidden;
-    
-    
     .today{
         padding: 10vw 0 10vw;
         text-align: center;
@@ -22,6 +20,12 @@ page-home {
             width: 100%;
             color: #151f2b;
         }
+    }
+
+    .log-loader{
+        text-align: center;
+        font-size: 2em;
+        color: lightgray;
     }
 
     .log-list{

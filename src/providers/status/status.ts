@@ -1,11 +1,12 @@
+import { SocketProvider } from './../socket/socket';
 import { Platform } from 'ionic-angular';
-import { Socket } from 'ng-socket-io';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { DeviceProvider } from './../device/device';
 import { BatteryProvider } from '../battery/battery';
 import { ConnectionProvider } from '../connection/connection';
 import { LocationProvider } from '../location/location';
+
 /*
   Generated class for the StatusProvider provider.
 
@@ -16,12 +17,12 @@ import { LocationProvider } from '../location/location';
 export class StatusProvider {
   connection : any;
   
-  constructor(public http: HttpClient, private socket: Socket, public batteryService: BatteryProvider, public connectionService: ConnectionProvider, public deviceService: DeviceProvider, public locationService: LocationProvider, public platform: Platform) {
+  constructor(public http: HttpClient,  public batteryService: BatteryProvider, public connectionService: ConnectionProvider, public deviceService: DeviceProvider, public locationService: LocationProvider, public platform: Platform, private socketService : SocketProvider) {
     console.log('Hello StatusProvider Provider');
 
-    this.socket.on('sv-myCurrentStatus', () => {
+    this.socketService.socket.on('sv-myCurrentStatus', () => {
       this.platform.ready().then(() => {
-        this.socket.emit('cl-myCurrentStatus', {
+        this.socketService.socket.emit('cl-myCurrentStatus', {
           battery:{
             level : this.batteryService.currBattery,
             plugged : this.batteryService.isPlugged

@@ -1,64 +1,67 @@
 import { Platform } from 'ionic-angular/platform/platform';
-import { DatabaseProvider } from './../database/database';
-import { TimeProvider } from './../time/time';
 import { Observable } from 'rxjs/Observable';
-import { Socket } from 'ng-socket-io';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EmployeesProvider } from '../employees/employees';
 import { LocalNotifications } from '@ionic-native/local-notifications';
-/*
-  Generated class for the MessageProvider provider.
+import { EmployeesProvider } from '../employees/employees';
+import { AuthProvider } from './../auth/auth';
+import { DatabaseProvider } from './../database/database';
+import { TimeProvider } from './../time/time';
+import { SocketProvider } from '../socket/socket';
 
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
+
 @Injectable()
 export class MessageProvider {
   messages = [];
   maxLocalUnix: number = 0;
   maxRemoteUnix: number = 0;
-  constructor(private employees: EmployeesProvider, public http: HttpClient, private socket: Socket, private timeService: TimeProvider, private database: DatabaseProvider, public localNotif: LocalNotifications, private platform: Platform) {
-
-    this.getMessage().subscribe((data : { sentAt : number, isMe : boolean, time : string, content : string }) => {
-      if (!data.isMe) {
-        this.database.db.executeSql('insert into message(time, content, isMe) values(' + data.sentAt + ', "' + data.content + '", 0)', {}).then(() => {
-          console.log("received messaged saved to local");
-          this.triggerLocalNotif(data);
-        }).catch(e => {
-          console.log("failed to save received message");
+  messageSubscription : any;
+  constructor(private employees: EmployeesProvider, public http: HttpClient,  private timeService: TimeProvider, private database: DatabaseProvider, public localNotif: LocalNotifications, private platform: Platform, private auth: AuthProvider, private socketService : SocketProvider) {
+    this.auth.isAuth.subscribe(x => {
+      if(x){
+        this.messageSubscription = this.getMessage().subscribe((data: { sentAt: number, isMe: boolean, time: string, content: string }) => {
+          if (!data.isMe) {
+            this.database.db.executeSql('insert into message(time, content, isMe) values(' + data.sentAt + ', "' + data.content + '", 0)', {}).then(() => {
+              console.log("received messaged saved to local");
+              this.triggerLocalNotif(data);
+            }).catch(e => {
+              console.log("failed to save received message");
+            });
+          }
+    
+          let dt = this.timeService.getDateTime(data.sentAt * 1000);
+          data.time = dt.time + " " + dt.am_pm;
+          this.messages.push(data);
         });
-      }
-
-      let dt = this.timeService.getDateTime(data.sentAt * 1000);
-      data.time = dt.time + " " + dt.am_pm;
-      this.messages.push(data);
-    });
-
-    this.socket.on('sv-sendInitMessages', (data) => {
-      let c = 0;
-      let d = data.length;
-      let temp = [];
-      for (let i of data) {
-        let dt = this.timeService.getDateTime(i.sentAt * 1000);
-        i.time = dt.time + " " + dt.am_pm;
-        if (this.maxRemoteUnix < i.sentAt) this.maxRemoteUnix = i.sentAt;
-        temp.push(i);
-
-        if (++c == d) {
-          this.messages = temp;
-          this.database._dbready.subscribe((ready) => {
-            if (ready) {
-              this.syncMessages(this.maxRemoteUnix, data);
+    
+        this.socketService.socket.on('sv-sendInitMessages', (data) => {
+          let c = 0;
+          let d = data.length;
+          let temp = [];
+          for (let i of data) {
+            let dt = this.timeService.getDateTime(i.sentAt * 1000);
+            i.time = dt.time + " " + dt.am_pm;
+            if (this.maxRemoteUnix < i.sentAt) this.maxRemoteUnix = i.sentAt;
+            temp.push(i);
+    
+            if (++c == d) {
+              this.messages = temp;
+              this.database._dbready.subscribe((ready) => {
+                if (ready) {
+                  this.syncMessages(this.maxRemoteUnix, data);
+                }
+              });
             }
-          });
-        }
+          }
+        });
+      }else{
+        if(this.messageSubscription != undefined) this.messageSubscription.unsubscribe();
       }
     });
   }
 
   requestInitMessages() {
-    this.socket.emit('cl-getInitMessages', { employeeId: this.employees.currentId });
+    this.socketService.socket.emit('cl-getInitMessages');
   }
 
   getLocalMaxUnix() {
@@ -131,7 +134,7 @@ export class MessageProvider {
                 time: unix
               }
 
-              this.socket.emit('cl-sendNewMessage', nm);
+              this.socketService.socket.emit('cl-sendNewMessage', nm);
             }
           } else {
             console.log("no unsent message.");
@@ -159,7 +162,7 @@ export class MessageProvider {
                   "content": data.rows.item(i).content,
                   "isMe": data.rows.item(i).isMe
                 });
-                if(++c == data.rows.length) this.messages = temp;
+                if (++c == data.rows.length) this.messages = temp;
               }
             }
           }).catch(e => {
@@ -172,7 +175,7 @@ export class MessageProvider {
 
   getMessage() {
     let observable = new Observable(observer => {
-      this.socket.on('sv-newMessage', (data) => {
+      this.socketService.socket.on('sv-newMessage', (data) => {
         observer.next(data);
       });
     });

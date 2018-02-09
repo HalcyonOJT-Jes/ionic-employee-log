@@ -12,7 +12,7 @@
         <div class="time">{{ this.timeService.dateTime.time }}
           <span>{{ this.timeService.dateTime.am_pm }}</span>
         </div>
-        <button ion-button color="btnPrimary" large (click)="connect()">CLOCK IN</button>
+        <button ion-button color="btnPrimary" large (click)="openCamera()">CLOCK IN</button>
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -21,7 +21,10 @@
 <ion-content>
   <ion-grid class="log">
     <ion-row>
-      <ion-col col-10 offset-1 class="log-list">
+      <ion-col col-10 offset-1 class="log-loader" *ngIf="log.local_log.length == 0">
+        <ion-spinner></ion-spinner>
+      </ion-col>
+      <ion-col col-10 offset-1 class="log-list" *ngIf="log.local_log.length > 0">
         <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i; trackBy : log.trackLog">
           <ion-col col-2 style="white-space:nowrap;">
             <div class="badge-outer">

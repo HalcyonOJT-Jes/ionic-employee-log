@@ -1,9 +1,9 @@
+import { SocketProvider } from './../../providers/socket/socket';
 import { ConnectionProvider } from './../../providers/connection/connection';
 import { MessageProvider } from './../../providers/message/message';
 import { DatabaseProvider } from './../../providers/database/database';
 import { Component, ViewChild } from '@angular/core';
 import { IonicPage, NavController, NavParams, Content, ToastController } from 'ionic-angular';
-import { Socket } from 'ng-socket-io';
 import { Observable } from 'rxjs/Observable';
 import { EmployeesProvider } from './../../providers/employees/employees';
 import { TimeProvider } from '../../providers/time/time';
@@ -20,7 +20,7 @@ export class ChatPage {
   adminTyping = false;
   timeoutTyping: any;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private socket: Socket, public employees: EmployeesProvider, public timeService: TimeProvider, public database: DatabaseProvider, private messageService: MessageProvider, private connectionService: ConnectionProvider, private toast: ToastController) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, public employees: EmployeesProvider, public timeService: TimeProvider, public database: DatabaseProvider, private messageService: MessageProvider, private connectionService: ConnectionProvider, private toast: ToastController, public socketService : SocketProvider) {
 
     this.messageService.getMessage().subscribe(() => {
       this.typing = '';
@@ -40,7 +40,7 @@ export class ChatPage {
   }
 
   userTyping() {
-    this.socket.emit('cl-typing', { isEmployee: true });
+    this.socketService.socket.emit('cl-typing', { isEmployee: true });
   }
 
   typeTimeout() {
@@ -52,7 +52,7 @@ export class ChatPage {
 
   getTyping() {
     let obs = new Observable(obs => {
-      this.socket.on('sv-adminTyping', (nickname) => {
+      this.socketService.socket.on('sv-adminTyping', (nickname) => {
         this.adminTyping = true;
         console.log('still typing');
         clearTimeout(this.timeoutTyping);
@@ -69,10 +69,7 @@ export class ChatPage {
     let dt = this.timeService.getDateTime(unix * 1000);
 
     let nm = {
-      content: this.message,
-      isMe: true,
-      employeeId: this.employees.currentId,
-      time: unix
+      content: this.message
     }
 
     let nm2 = {
@@ -85,7 +82,7 @@ export class ChatPage {
     this.database.db.executeSql('insert into message(time, content, isMe) VALUES(' + unix + ', "' + nm.content + '", 1)', {}).then(() => {
       console.log("Messaged saved to local");
       if (this.connectionService.connection) {
-        this.socket.emit('cl-sendNewMessage', nm, (res) => {
+        this.socketService.socket.emit('cl-sendNewMessage', nm, (res) => {
           console.log(res);
         });
         console.log("message sent to server");
@@ -108,7 +105,7 @@ export class ChatPage {
   }
 
   ionViewDidLoad() {
-    this.socket.emit('clJoinRoom', { employeeId: "5a5f185480a25f2aac4abf20" });
+    this.socketService.socket.emit('clJoinRoom', { employeeId: "5a5f185480a25f2aac4abf20" });
   }
 
   ionViewDidEnter() {

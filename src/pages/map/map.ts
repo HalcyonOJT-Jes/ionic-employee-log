@@ -1,4 +1,4 @@
-import { Socket } from 'ng-socket-io';
+import { SocketProvider } from './../../providers/socket/socket';
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { Platform } from 'ionic-angular/platform/platform';
 import { LocationProvider } from './../../providers/location/location';
@@ -24,7 +24,7 @@ export class MapPage {
 
   @ViewChild('canvas') mapElement: ElementRef;
   map: GoogleMap;
-  constructor(public navCtrl: NavController, public navParams: NavParams, private locationService: LocationProvider, private platform: Platform, private socket : Socket, private nativeGeocoder: NativeGeocoder, private loader : LoadingController ) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, private locationService: LocationProvider, private platform: Platform,  private nativeGeocoder: NativeGeocoder, private loader : LoadingController, public socketService : SocketProvider ) {
     this.platform.ready().then(() => {
 
       this.loadMap(this.locationService.lat, this.locationService.long).then(() => {
@@ -78,7 +78,7 @@ export class MapPage {
                 }
                 console.log(formattedAddress);
 
-                this.socket.emit('cl-myCurrentStatus', {
+                this.socketService.socket.emit('cl-myCurrentStatus', {
                   location : {
                     lat : latLng[0].lat,
                     lng : latLng[0].lng,
@@ -113,8 +113,6 @@ export class MapPage {
         }).catch(e => {
           console.log(e);
         });
-
-
     });
   }
 

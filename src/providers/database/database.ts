@@ -73,11 +73,23 @@ export class DatabaseProvider {
         }).catch(e => {
           console.log(e);
         });
+
         //////////////////////
         //custom sqls 
         // db.executeSql('delete from log where isSeen is null',{}).then(() =>{
         //   console.log("log deleted");
         // });
+
+        /* user */
+        /**
+         * id
+         * demoId
+         * username
+         * firstname
+         * mi
+         * lastname
+         * 
+         */
         resolve({ success: true });
       }).catch(e => {
         console.log(e);

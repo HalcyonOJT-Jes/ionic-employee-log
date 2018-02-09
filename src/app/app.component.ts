@@ -5,24 +5,35 @@ import { Nav, Platform } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { OneSignal } from '@ionic-native/onesignal';
+import { Storage } from '@ionic/storage';
+import { AuthProvider } from '../providers/auth/auth';
+
 @Component({
   templateUrl: 'app.html'
 })
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
-  rootPage:string = 'HomePage';
+  rootPage:string;
   pages: Array<{title: string, component: any}>;
   employeeIds = [];
   
-  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider) {
+  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider, private storage : Storage, private auth : AuthProvider) {
     platform.ready().then(() => {
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
       this.initializeApp();
-      this.initializeOneSignal();
+      // this.initializeOneSignal();
       statusBar.styleDefault();
       statusBar.hide();
       splashScreen.hide();
+
+      this.auth.validateToken().then((data : any) => {
+        console.log(data);
+        if(data.name) {
+          this.auth.isAuth.next(true);
+          this.rootPage = 'HomePage';
+        }else this.rootPage = 'LoginPage';
+      }).catch(e => {
+        console.log(e);
+      });
     });
 
     this.pages = [
@@ -30,7 +41,8 @@ export class MyApp {
       { title : 'Log', component: 'LogPage'},
       { title : 'Chat', component: 'ChatPage'},
       { title : 'Barcode Scanner', component : 'ScanPage'},
-      { title : 'Location Simulation', component : 'MapPage'}
+      { title : 'Location Simulation', component : 'MapPage'},
+      { title : 'Logout', component : ''}
     ];
 
     this.messages.localNotif.on('click', () => {
@@ -39,7 +51,15 @@ export class MyApp {
   }
 
   openPage(page){
-    this.nav.setRoot(page.component);
+    if(page.title !== 'Logout') this.nav.setRoot(page.component);
+    else {
+      this.storage.remove('token').then(() => {
+        this.auth.isAuth.next(false);
+        this.nav.setRoot('LoginPage');
+      }).catch(e => {
+        console.log(e);
+      });
+    }
   }
 
   initializeApp(){

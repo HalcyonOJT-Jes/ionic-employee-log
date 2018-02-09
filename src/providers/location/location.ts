@@ -1,9 +1,10 @@
-import { Socket } from 'ng-socket-io';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { NativeGeocoder, NativeGeocoderReverseResult } from '@ionic-native/native-geocoder';
 import { Geolocation } from '@ionic-native/geolocation';
 import { Platform } from 'ionic-angular';
+import { AuthProvider } from '../auth/auth';
+import { SocketProvider } from '../socket/socket';
 
 /*
   Generated class for the LocationProvider provider.
@@ -23,7 +24,7 @@ export class LocationProvider {
       let newLocation = result.thoroughfare + ", " + result.locality + " " + result.administrativeArea + ", " + result.countryCode;
       if (this.location != newLocation) {
         this.location = newLocation;
-        this.socket.emit('cl-myCurrentStatus', {
+        this.socketService.socket.emit('cl-myCurrentStatus', {
           location: {
             formattedAddress: newLocation,
             lat: this.lat,
@@ -36,9 +37,13 @@ export class LocationProvider {
     });
   });
 
-  constructor(public platform: Platform, public http: HttpClient, private geolocation: Geolocation, private socket: Socket, private geocoder: NativeGeocoder) {
-    console.log('Hello LocationProvider Provider');
-    this.getLocation();
+  constructor(public platform: Platform, public http: HttpClient, private geolocation: Geolocation,  private geocoder: NativeGeocoder, private auth : AuthProvider, private socketService : SocketProvider) {
+    this.auth.isAuth.subscribe(x => {
+      if(x){
+        console.log('Hello LocationProvider Provider');
+        this.getLocation();
+      }
+    });
   }
 
   async getLocation() {

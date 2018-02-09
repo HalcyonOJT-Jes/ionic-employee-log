@@ -1,5 +1,4 @@
 import { EmployeesProvider } from './../employees/employees';
-import { Socket } from 'ng-socket-io';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TimeProvider } from './../time/time';
@@ -8,6 +7,8 @@ import { Platform } from 'ionic-angular/platform/platform';
 import { Base64 } from '@ionic-native/base64';
 import { Observable } from 'rxjs/Observable';
 import { ToastController } from 'ionic-angular/components/toast/toast-controller';
+import { AuthProvider } from './../auth/auth';
+import { SocketProvider } from '../socket/socket';
 
 @Injectable()
 export class LogProvider {
@@ -27,54 +28,67 @@ export class LogProvider {
     duration: 3000
   })
 
-  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private socket: Socket, private employeeService: EmployeesProvider, private toast: ToastController, private platform: Platform) {
+  logEntrySubscription : any;
+
+  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider,  private employeeService: EmployeesProvider, private toast: ToastController, private platform: Platform, private auth: AuthProvider, private socketService : SocketProvider) {
     console.log("Hello Log Provider");
-    this.socket.on('sv-notifSeen', (logId) => {
-      let temp_log = this.local_log;
-
-      temp_log.find((o, i) => {
-        console.log(o._id + " = " + logId.id);
-        if (o._id === logId.id) {
-          temp_log[i].isSeen = true;
-          this.local_log = temp_log;
-          return true;
-        }
-      });
-    });
-
-    this.logEntry().subscribe((data: { id: string, timeIn: number, formattedAddress: string }) => {
-      if (++this.exportCounter == this.exportMax) {
-        this.syncEnd.present();
-      }
-
-      if (data.id) {
-        console.log("pushing log to log array");
-        this.local_log = this.local_log.filter(x => {
-          console.log(x);
-          return x.hasOwnProperty('_id');
-        });
-        
-        this.pushLog(data.id, data.timeIn, data.formattedAddress);
-
-      }
-    });
-
-    this.socket.on('sv-sendInitNotif', data => {
-      console.log("received initial logs");
-      this.database._dbready.subscribe((ready) => {
-        if (ready) {
-          this.getRemoteLogs(data).then((logs: Array<{}>) => {
-            this.findUnixMax().then((maxUnix) => {
-              console.log("max unix received : " + maxUnix);
-              this.syncLogs(maxUnix, logs).then(() => {
-                this.local_log = logs;
-                console.log("sync complete");
-              });
-            });
+    this.auth.isAuth.subscribe(x => {
+      if(x) {
+        this.socketService.socket.on('sv-notifSeen', (logId) => {
+          let temp_log = this.local_log;
+    
+          temp_log.find((o, i) => {
+            console.log(o._id + " = " + logId.id);
+            if (o._id === logId.id) {
+              temp_log[i].isSeen = true;
+              this.local_log = temp_log;
+              return true;
+            }
           });
-        }
-      });
+        });
+
+        this.socketService.socket.on('sv-sendInitNotif', data => {
+          console.log("received initial logs");
+          this.database._dbready.subscribe((ready) => {
+            if (ready) {
+              this.getRemoteLogs(data).then((logs: Array<{}>) => {
+                this.findUnixMax().then((maxUnix) => {
+                  console.log("max unix received : " + maxUnix);
+                  this.syncLogs(maxUnix, logs).then(() => {
+                    this.local_log = logs;
+                    console.log("sync complete");
+                  });
+                });
+              });
+            }
+          });
+        });
+
+        this.logEntrySubscription = this.logEntry().subscribe((data: { id: string, timeIn: number, formattedAddress: string }) => {
+          if (++this.exportCounter == this.exportMax) {
+            this.syncEnd.present();
+          }
+      
+          if (data.id) {
+            console.log("pushing log to log array");
+            this.local_log = this.local_log.filter(x => {
+              console.log(x);
+              return x.hasOwnProperty('_id');
+            });
+      
+            this.pushLog(data.id, data.timeIn, data.formattedAddress);
+      
+          }
+        });
+      }else{
+        if(this.logEntrySubscription != undefined) this.logEntrySubscription.unsubscribe();
+      }
     });
+    
+
+    
+
+    
   }
 
   findUnixMax() {
@@ -208,7 +222,7 @@ export class LogProvider {
               console.log("image converted to b64; now uploading to server.");
 
               //send log to server
-              this.socket.emit('cl-timeIn', {
+              this.socketService.socket.emit('cl-timeIn', {
                 employeeId: this.employeeService.currentId,
                 timeIn: data.rows.item(i).timeIn,
                 pic: b64,
@@ -261,7 +275,7 @@ export class LogProvider {
   }
 
   requestRemoteLogs() {
-    this.socket.emit('cl-getInitNotifEmployee', { employeeId: this.employeeService.currentId });
+    this.socketService.socket.emit('cl-getInitNotifEmployee');
   }
 
   trackLog(index, log) {
@@ -270,7 +284,7 @@ export class LogProvider {
 
   logEntry() {
     let obs = new Observable((observable) => {
-      this.socket.on('sv-successTimeIn', (data) => {
+      this.socketService.socket.on('sv-successTimeIn', (data) => {
         observable.next(data);
       });
     });

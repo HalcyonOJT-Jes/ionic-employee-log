@@ -1,5 +1,4 @@
 import { TimeProvider } from './../../providers/time/time';
-import { Socket } from 'ng-socket-io';
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { EmployeesProvider } from './../../providers/employees/employees';
@@ -19,7 +18,7 @@ import { LogProvider } from '../../providers/log/log';
 export class LogPage {
   month : any;
   rows : any;
-  constructor(public navCtrl: NavController, public navParams: NavParams, public socket: Socket, public employeeId: EmployeesProvider, private log : LogProvider, public timeService : TimeProvider) {
+  constructor(public navCtrl: NavController, public navParams: NavParams,  public employeeId: EmployeesProvider, private log : LogProvider, public timeService : TimeProvider) {
     this.month = this.timeService.months[this.timeService.getCurMonth()];
   }
   
