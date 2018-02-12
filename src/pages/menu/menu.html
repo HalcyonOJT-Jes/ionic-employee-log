@@ -8,20 +8,40 @@
 
 
 <ion-content padding>
-  <ion-row>
-    <ion-col col-8 offset-2>
-      <img [src]="database.base64Image" *ngIf="database.base64Image" />
-    </ion-col>
-  </ion-row>
-  <span class="location" *ngIf="locationService.location"><ion-icon name="pin"></ion-icon> {{ locationService.location }}</span>
-  <span class="scan-result" *ngIf="scanResult"><ion-icon name="code-working"></ion-icon> {{ scanResult }}</span>
+  <ion-card>
+
+    <ion-slides *ngIf="database.photos" pager="true" effect="fade" zoom="true">
+      <ion-slide *ngFor="let photo of database.photos">
+        <img [src]="'data:image/jpeg;base64,' + photo.base64Data">
+      </ion-slide>
+    </ion-slides>
+
+    <ion-fab right top>
+      <button ion-fab>
+        <ion-icon name="pin"></ion-icon>
+      </button>
+    </ion-fab>
+
+    <ion-item *ngIf="locationService.location">
+      <ion-icon name="pin" item-start large></ion-icon>
+      <h2>{{ locationService.location }}</h2>
+      <p>Location</p>
+    </ion-item>
+
+    <ion-item *ngIf="scanResult">
+      <ion-icon name="barcode" item-left large></ion-icon>
+      <h2>{{ scanResult }}</h2>
+      <p>Scan Result</p>
+    </ion-item>
+
+  </ion-card>
 </ion-content>
 
-<ion-footer >
+<ion-footer>
   <ion-toolbar color="primary">
     <ion-row>
       <ion-col col-6 offset-3>
-        <button ion-button color="btnPrimary" full round large (click)="send()" *ngIf="database.base64Image">Send</button>
+        <button ion-button color="btnPrimary" full round large (click)="send()" *ngIf="database.photos">Send</button>
       </ion-col>
     </ion-row>
   </ion-toolbar>

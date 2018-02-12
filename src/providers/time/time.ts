@@ -69,7 +69,7 @@ export class TimeProvider {
   timeFeed() {
     setTimeout(() => {
       this.dateTime = this.getDateTime(new Date().getTime());
-      this.curUnix = Math.floor(Date.now()) / 1000;
+      this.curUnix = Math.floor(Date.now() / 1000);
       this.timeFeed();
     }, 1000);
   }

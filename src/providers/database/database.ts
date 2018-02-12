@@ -11,7 +11,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 */
 @Injectable()
 export class DatabaseProvider {
-  base64Image: any;
+  photos : any;
   public db: any;
   _dbready = new BehaviorSubject<boolean>(false);
   
@@ -44,7 +44,8 @@ export class DatabaseProvider {
         /* log table creation */
         /*
           log
-          *-logId
+          *-id
+          --logId
           --timeIn
           --month
           --lat
@@ -54,11 +55,13 @@ export class DatabaseProvider {
           --isSeen
           --pic
         */
-        db.executeSql('create table if not exists log(logId varchar(255), timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic varchar(255))', {}).then(() => {
-          console.log('Created log table')
-        }).catch(e => {
-          console.log(e);
-        });
+
+        //pic column 
+        // db.executeSql('create table if not exists log(id INTEGER PRIMARY KEY AUTOINCREMENT, logId varchar(255), timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic INTEGER)', {}).then(() => {
+        //   console.log('Created log table')
+        // }).catch(e => {
+        //   console.log(e);
+        // });
 
         /* message table creation */
         /*
@@ -68,28 +71,31 @@ export class DatabaseProvider {
           --content
           --isMe
         */
-        db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, content varchar(255), isMe INTEGER)', {}).then(() => {
-          console.log('Created message table')
-        }).catch(e => {
-          console.log(e);
-        });
+        // db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, content varchar(255), isMe INTEGER)', {}).then(() => {
+        //   console.log('Created message table')
+        // }).catch(e => {
+        //   console.log(e);
+        // });
+        
+        /* log images table creation */
+        /**
+         * log_images 
+         * *-liId
+         * **logId -> log(iyd)
+         * --file
+         */
+
+         db.executeSql('create table if not exists log_images(liId INTEGER PRIMARY KEY AUTOINCREMENT, logId INTEGER, file varchar(255), FOREIGN KEY(logId) REFERENCES log(id))', {}).then(() => {
+           console.log('Created log_images table');
+         }).catch(e => {
+           console.log(e);
+         })
 
         //////////////////////
         //custom sqls 
         // db.executeSql('delete from log where isSeen is null',{}).then(() =>{
         //   console.log("log deleted");
         // });
-
-        /* user */
-        /**
-         * id
-         * demoId
-         * username
-         * firstname
-         * mi
-         * lastname
-         * 
-         */
         resolve({ success: true });
       }).catch(e => {
         console.log(e);

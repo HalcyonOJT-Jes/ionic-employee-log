@@ -27,6 +27,7 @@ import { Base64 } from '@ionic-native/base64';
 import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { OneSignal } from '@ionic-native/onesignal';
 import { LocalNotifications } from '@ionic-native/local-notifications';
+import { IonicMultiCameraModule } from 'ionic-multi-camera';
 
 import { MyApp } from './app.component';
 
@@ -57,6 +58,7 @@ import { SocketProvider } from '../providers/socket/socket';
     HttpClientModule,
     IonicModule.forRoot(MyApp),
     IonicStorageModule.forRoot(),
+    IonicMultiCameraModule.forRoot(),
   ],
   bootstrap: [IonicApp],
   entryComponents: [

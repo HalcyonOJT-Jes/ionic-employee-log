@@ -40,7 +40,6 @@ export class MyApp {
       { title : 'Home', component: 'HomePage'},
       { title : 'Log', component: 'LogPage'},
       { title : 'Chat', component: 'ChatPage'},
-      { title : 'Barcode Scanner', component : 'ScanPage'},
       { title : 'Location Simulation', component : 'MapPage'},
       { title : 'Logout', component : ''}
     ];

@@ -54,10 +54,10 @@ export class LogProvider {
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
                 this.findUnixMax().then((maxUnix) => {
                   console.log("max unix received : " + maxUnix);
-                  this.syncLogs(maxUnix, logs).then(() => {
-                    this.local_log = logs;
-                    console.log("sync complete");
-                  });
+                  // this.syncLogs(maxUnix, logs).then(() => {
+                  //   this.local_log = logs;
+                  //   console.log("sync complete");
+                  // });
                 });
               });
             }
