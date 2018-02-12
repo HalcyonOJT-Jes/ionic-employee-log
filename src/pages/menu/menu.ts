@@ -5,7 +5,7 @@ import { LogProvider } from './../../providers/log/log';
 import { DatabaseProvider } from './../../providers/database/database';
 import { TimeProvider } from './../../providers/time/time';
 import { Component } from '@angular/core';
-import { IonicPage, NavController, LoadingController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, LoadingController } from 'ionic-angular';
 import { EmployeesProvider } from '../../providers/employees/employees';
 import { BatteryProvider } from '../../providers/battery/battery';
 import { AlertController } from 'ionic-angular';
@@ -20,6 +20,7 @@ export class MenuPage {
   message: string;
   time: any;
   rows: any;
+  scanResult : string;
 
   sendLoading = this.loader.create({
     spinner: 'crescent',
@@ -40,7 +41,8 @@ export class MenuPage {
     }]
   });
 
-  constructor(private file: File, private connectionService: ConnectionProvider, public alertCtrl: AlertController, public navCtrl: NavController, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider, private logService: LogProvider, private socketService : SocketProvider) {
+  constructor(private navParams : NavParams ,private file: File, private connectionService: ConnectionProvider, public alertCtrl: AlertController, public navCtrl: NavController, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider, private logService: LogProvider, private socketService : SocketProvider) {
+    this.scanResult = this.navParams.get('scanResult');
     this.logService.logEntry().subscribe(() => {
       console.log("presented loading");
       this.sendLoading.dismiss().then(() => {
@@ -77,6 +79,7 @@ export class MenuPage {
             },
             batteryStatus: this.batteryService.currBattery,
             msg: this.message,
+            scanResult : this.scanResult
           }, (res) => {
             console.log(res);
           });
@@ -139,8 +142,5 @@ export class MenuPage {
         reject(e);
       });
     });
-  }
-
-  ionViewDidLoad() {
   }
 }

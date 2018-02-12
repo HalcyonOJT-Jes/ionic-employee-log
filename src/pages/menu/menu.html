@@ -13,7 +13,8 @@
       <img [src]="database.base64Image" *ngIf="database.base64Image" />
     </ion-col>
   </ion-row>
-  <span class="location" *ngIf="locationService.location"><ion-icon name="pin"></ion-icon>: {{ locationService.location }}</span>
+  <span class="location" *ngIf="locationService.location"><ion-icon name="pin"></ion-icon> {{ locationService.location }}</span>
+  <span class="scan-result" *ngIf="scanResult"><ion-icon name="code-working"></ion-icon> {{ scanResult }}</span>
 </ion-content>
 
 <ion-footer >

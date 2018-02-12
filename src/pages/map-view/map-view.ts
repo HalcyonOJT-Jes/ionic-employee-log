@@ -81,7 +81,7 @@ export class MapViewPage {
   }
 
   accept() {
-    this.navCtrl.setRoot('MenuPage');
+    this.navCtrl.setRoot('ScanPage');
   }
 
   cancel() {

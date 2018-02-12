@@ -3,13 +3,6 @@ import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 
-/**
- * Generated class for the ScanPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
-
 @IonicPage()
 @Component({
   selector: 'page-scan',
@@ -22,11 +15,9 @@ export class ScanPage {
 
   ionViewDidLoad() {
     this.barcodeScanner.scan().then((data) => {
-      this.alrtController.create({
-        title : 'Scan success',
-        subTitle : 'Scan result : ' + data.text + '\n Format : ' + data.format,
-        buttons : ['Ok']
-      }).present();
+      this.navCtrl.setRoot('MenuPage', {
+        scanResult : data.text
+      });
     }).catch(e => {
       this.alrtController.create({
         title : 'Scan failed',
