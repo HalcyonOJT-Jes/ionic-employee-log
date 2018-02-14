@@ -33,7 +33,7 @@
       <div class="time" style="float: right">{{ message.time }}</div>
     </ion-col>
     <ion-col col-2 *ngIf="message.isMe" >
-      <img src="https://trello-avatars.s3.amazonaws.com/86b9d2dcf35b7a7ca6525b1208401649/50.png">
+      <img [src]="accountService.accountPic">
     </ion-col>
   </ion-row>
 

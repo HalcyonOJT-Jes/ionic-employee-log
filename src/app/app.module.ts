@@ -43,6 +43,7 @@ import { StatusProvider } from '../providers/status/status';
 import { MessageProvider } from '../providers/message/message';
 import { AuthProvider } from '../providers/auth/auth';
 import { SocketProvider } from '../providers/socket/socket';
+import { AccountProvider } from '../providers/account/account';
 
 // const config: SocketIoConfig = { url: 'https://obscure-ridge-49316.herokuapp.com/', options: {} };
 // const config: SocketIoConfig = { url: 'https://socket-io-use.herokuapp.com/', options: {} };
@@ -92,7 +93,8 @@ import { SocketProvider } from '../providers/socket/socket';
     OneSignal,
     LocalNotifications,
     AuthProvider,
-    SocketProvider
+    SocketProvider,
+    AccountProvider
   ]
 })
 export class AppModule {}

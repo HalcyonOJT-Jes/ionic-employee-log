@@ -6,4 +6,20 @@ page-menu {
         text-align: center;
         font-size: 1em;
     }
+    .frame{
+        height: 50vh;
+        white-space: nowrap;
+    }
+    .swiper-slide img{
+        margin: 0 auto;
+        max-height: 52vh;
+        vertical-align: middle;
+        display: inline-block;
+    }
+
+    .helper {
+        height: 100%;
+        vertical-align: middle;
+        display: inline-block;
+    }
 }

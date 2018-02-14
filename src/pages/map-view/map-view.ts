@@ -1,6 +1,7 @@
+import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { LocationProvider } from './../../providers/location/location';
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, AlertController } from 'ionic-angular';
 import { NativeGeocoder, NativeGeocoderReverseResult } from '@ionic-native/native-geocoder';
 import {
   GoogleMaps,
@@ -19,7 +20,7 @@ export class MapViewPage {
   @ViewChild('map_canvas') mapElement: ElementRef;
   map: GoogleMap;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, private nativeGeocoder: NativeGeocoder, public locationService: LocationProvider) {
+  constructor(public alrtCtrl : AlertController, public navCtrl: NavController, public navParams: NavParams, private nativeGeocoder: NativeGeocoder, public locationService: LocationProvider, public barcodeScanner : BarcodeScanner) {
   }
 
   confirmLocation() {
@@ -81,7 +82,17 @@ export class MapViewPage {
   }
 
   accept() {
-    this.navCtrl.setRoot('ScanPage');
+    this.barcodeScanner.scan().then((data) => {
+      this.navCtrl.setRoot('MenuPage', {
+        scanResult : data.text
+      });
+    }).catch(e => {
+      this.alrtCtrl.create({
+        title : 'Scan failed',
+        subTitle : e,
+        buttons : ['Ok']
+      }).present();
+    });
   }
 
   cancel() {

@@ -4,7 +4,6 @@ import { TimeProvider } from './../../providers/time/time';
 import { LogProvider } from './../../providers/log/log';
 import { DatabaseProvider } from './../../providers/database/database';
 import { StatusProvider } from '../../providers/status/status';
-import { Camera, CameraOptions } from '@ionic-native/camera';
 import { LocationProvider } from './../../providers/location/location';
 import { IonicMultiCamera, Picture } from 'ionic-multi-camera';
 
@@ -16,14 +15,6 @@ import { IonicMultiCamera, Picture } from 'ionic-multi-camera';
 export class HomePage {
   long: any;
   lat: any;
-  // options: CameraOptions = {
-  //   destinationType: this.camera.DestinationType.DATA_URL,
-  //   encodingType: this.camera.EncodingType.JPEG,
-  //   mediaType: this.camera.MediaType.PICTURE,
-  //   cameraDirection: 1,
-  //   correctOrientation : true
-  // }
-
   openMapLoading = this.loader.create({
     spinner: 'crescent',
     dismissOnPageChange: true
@@ -33,22 +24,6 @@ export class HomePage {
   }
 
   openCamera() {
-    // this.camera.getPicture(this.options).then((imageData) => {
-    //   // imageData is either a base64 encoded string or a file URI
-    //   // If it's base64:
-    //   this.database.base64Image = 'data:image/jpeg;base64,' + imageData;
-    //   //show loading
-    //   this.openMapLoading.present().then(() => {
-    //     //confirm locaiton
-    //     this.navCtrl.push('MapViewPage', {
-    //       lat: this.locationService.lat,
-    //       long: this.locationService.long
-    //     })
-    //   });
-    // }, (err) => {
-    //   console.log(err);
-    // });
-
     this.camera.getPicture().then((pictures : Array<Picture>) => {
       this.database.photos = pictures;
       this.openMapLoading.present().then(() => {

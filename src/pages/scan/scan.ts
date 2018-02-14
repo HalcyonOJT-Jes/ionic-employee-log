@@ -14,17 +14,7 @@ export class ScanPage {
   }
 
   ionViewDidLoad() {
-    this.barcodeScanner.scan().then((data) => {
-      this.navCtrl.setRoot('MenuPage', {
-        scanResult : data.text
-      });
-    }).catch(e => {
-      this.alrtController.create({
-        title : 'Scan failed',
-        subTitle : e,
-        buttons : ['Ok']
-      }).present();
-    });
+    
   }
 
 }

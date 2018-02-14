@@ -21,14 +21,19 @@
 <ion-content>
   <ion-grid class="log">
     <ion-row>
-      <ion-col col-10 offset-1 class="log-loader" *ngIf="log.local_log.length == 0">
+      <ion-col col-10 offset-1 class="empy-message" *ngIf="log.showEmptyLog == true">
+        Nothing here. :(
+      </ion-col>
+      <ion-col col-10 offset-1 class="log-loader" *ngIf="log.showLogLoader == true">
         <ion-spinner></ion-spinner>
       </ion-col>
       <ion-col col-10 offset-1 class="log-list" *ngIf="log.local_log.length > 0">
         <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i; trackBy : log.trackLog">
           <ion-col col-2 style="white-space:nowrap;">
             <div class="badge-outer">
-                <span class="badge"><span>{{ c - i }}</span></span>
+              <span class="badge">
+                <span>{{ c - i }}</span>
+              </span>
             </div>
           </ion-col>
           <ion-col col-7>

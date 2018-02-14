@@ -12,6 +12,8 @@ import { SocketProvider } from '../socket/socket';
 
 @Injectable()
 export class LogProvider {
+  showEmptyLog: boolean = false;
+  showLogLoader: boolean = false;
   local_log = [];
   custom_log = [];
   time_in_list = [];
@@ -28,15 +30,15 @@ export class LogProvider {
     duration: 3000
   })
 
-  logEntrySubscription : any;
+  logEntrySubscription: any;
 
-  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider,  private employeeService: EmployeesProvider, private toast: ToastController, private platform: Platform, private auth: AuthProvider, private socketService : SocketProvider) {
+  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private employeeService: EmployeesProvider, private toast: ToastController, private platform: Platform, private auth: AuthProvider, private socketService: SocketProvider) {
     console.log("Hello Log Provider");
     this.auth.isAuth.subscribe(x => {
-      if(x) {
+      if (x) {
         this.socketService.socket.on('sv-notifSeen', (logId) => {
           let temp_log = this.local_log;
-    
+
           temp_log.find((o, i) => {
             console.log(o._id + " = " + logId.id);
             if (o._id === logId.id) {
@@ -48,18 +50,23 @@ export class LogProvider {
         });
 
         this.socketService.socket.on('sv-sendInitNotif', data => {
+          this.showLogLoader = true;
           console.log("received initial logs");
           this.database._dbready.subscribe((ready) => {
             if (ready) {
+              console.log("yay");
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
+                this.local_log = logs;
                 this.findUnixMax().then((maxUnix) => {
                   console.log("max unix received : " + maxUnix);
+                  if (this.local_log.length == 0) this.showEmptyLog = true;
+                  this.showLogLoader = false;
                   // this.syncLogs(maxUnix, logs).then(() => {
                   //   this.local_log = logs;
                   //   console.log("sync complete");
                   // });
-                });
-              });
+                }).catch(e => console.log(e));
+              }).catch(e => console.log(e));
             }
           });
         });
@@ -68,27 +75,21 @@ export class LogProvider {
           if (++this.exportCounter == this.exportMax) {
             this.syncEnd.present();
           }
-      
+
           if (data.id) {
             console.log("pushing log to log array");
             this.local_log = this.local_log.filter(x => {
-              console.log(x);
               return x.hasOwnProperty('_id');
             });
-      
+
             this.pushLog(data.id, data.timeIn, data.formattedAddress);
-      
+
           }
         });
-      }else{
-        if(this.logEntrySubscription != undefined) this.logEntrySubscription.unsubscribe();
+      } else {
+        if (this.logEntrySubscription != undefined) this.logEntrySubscription.unsubscribe();
       }
     });
-    
-
-    
-
-    
   }
 
   findUnixMax() {

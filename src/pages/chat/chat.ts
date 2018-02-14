@@ -5,8 +5,8 @@ import { DatabaseProvider } from './../../providers/database/database';
 import { Component, ViewChild } from '@angular/core';
 import { IonicPage, NavController, NavParams, Content, ToastController } from 'ionic-angular';
 import { Observable } from 'rxjs/Observable';
-import { EmployeesProvider } from './../../providers/employees/employees';
 import { TimeProvider } from '../../providers/time/time';
+import { AccountProvider } from '../../providers/account/account';
 
 @IonicPage()
 @Component({
@@ -20,7 +20,7 @@ export class ChatPage {
   adminTyping = false;
   timeoutTyping: any;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, public employees: EmployeesProvider, public timeService: TimeProvider, public database: DatabaseProvider, private messageService: MessageProvider, private connectionService: ConnectionProvider, private toast: ToastController, public socketService : SocketProvider) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, public timeService: TimeProvider, public database: DatabaseProvider, private messageService: MessageProvider, private connectionService: ConnectionProvider, private toast: ToastController, public socketService : SocketProvider, public accountService : AccountProvider) {
 
     this.messageService.getMessage().subscribe(() => {
       this.typing = '';
@@ -105,7 +105,6 @@ export class ChatPage {
   }
 
   ionViewDidLoad() {
-    this.socketService.socket.emit('clJoinRoom', { employeeId: "5a5f185480a25f2aac4abf20" });
   }
 
   ionViewDidEnter() {

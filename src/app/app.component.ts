@@ -21,13 +21,8 @@ export class MyApp {
     platform.ready().then(() => {
       this.initializeApp();
       // this.initializeOneSignal();
-      statusBar.styleDefault();
-      statusBar.hide();
-      splashScreen.hide();
-
-      this.auth.validateToken().then((data : any) => {
-        console.log(data);
-        if(data.name) {
+      this.auth.checkExistingToken().then((valid) => {
+        if(valid) {
           this.auth.isAuth.next(true);
           this.rootPage = 'HomePage';
         }else this.rootPage = 'LoginPage';
@@ -65,15 +60,15 @@ export class MyApp {
     console.log("initializeApp()");
   }
 
-  initializeOneSignal(){
-    this.oneSignal.startInit('021ea496-ff09-4568-8a6f-04a56105b61d','282096607572');
-    this.oneSignal.inFocusDisplaying(this.oneSignal.OSInFocusDisplayOption.InAppAlert);
-    this.oneSignal.handleNotificationReceived().subscribe(() => {
-      console.log("notification received");
-    });
-     this.oneSignal.handleNotificationOpened().subscribe(() => {
-      console.log("notification opened");
-    });
-    this.oneSignal.endInit();
-  }
+  // initializeOneSignal(){
+  //   this.oneSignal.startInit('021ea496-ff09-4568-8a6f-04a56105b61d','282096607572');
+  //   this.oneSignal.inFocusDisplaying(this.oneSignal.OSInFocusDisplayOption.InAppAlert);
+  //   this.oneSignal.handleNotificationReceived().subscribe(() => {
+  //     console.log("notification received");
+  //   });
+  //    this.oneSignal.handleNotificationOpened().subscribe(() => {
+  //     console.log("notification opened");
+  //   });
+  //   this.oneSignal.endInit();
+  // }
 }
