@@ -21,7 +21,10 @@ export class MyApp {
     platform.ready().then(() => {
       this.initializeApp();
       // this.initializeOneSignal();
-      this.auth.checkExistingToken().then((valid) => {
+      //checks for connection; pass connection status to token existence check;
+      let b : boolean = connection.network.type != 'none' ? true : false;
+      console.log(b);
+      this.auth.checkExistingToken(b).then((valid) => {
         if(valid) {
           this.auth.isAuth.next(true);
           this.rootPage = 'HomePage';

@@ -17,7 +17,6 @@ export class ConnectionProvider {
   constructor(private alertCtrl: AlertController, public http: HttpClient, public network: Network, public employees: EmployeesProvider, public toast: ToastController, public platform: Platform, private logService: LogProvider, private auth: AuthProvider, private messageService: MessageProvider, private socketService: SocketProvider) {
     console.log('Hello ConnectionProvider Provider');
     console.log("----------initial connection-------");
-    this.connection = this.network.type === 'none' ? false : true;
     this.network.onchange().subscribe(() => {
       this.networkType = this.network.type;
       if (this.networkType != 'none') this.showConnectionUpdate('state-connected');
@@ -30,6 +29,7 @@ export class ConnectionProvider {
     this.auth.isAuth.subscribe(x => {
       if (x) {
         //enable ons if an user has logged in
+        this.connection = true;
         this.socketService.socket.on('connect_error', () => {
           if (this.connection == true) {
             this.connection = false;

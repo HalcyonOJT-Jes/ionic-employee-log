@@ -90,6 +90,12 @@ export class DatabaseProvider {
            console.log(e);
          })
 
+         /* user table creation*/
+         /**
+          * id
+          * userId
+          * 
+          */
         //////////////////////
         //custom sqls 
         resolve({ success: true });

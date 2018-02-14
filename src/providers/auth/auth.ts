@@ -47,10 +47,16 @@ export class AuthProvider {
     });
   }
 
-  checkExistingToken() {
+  checkExistingToken(b) {
     return new Promise((resolve, reject) => {
       this.storage.get('token').then(token => {
         if (typeof token === "string") {
+          //skip token validation if false; continue otherwise;
+          if(!b){
+            resolve(true);
+            return;
+          }
+
           this.validateToken(token).then(valid => {
             if(valid) resolve(true); else resolve(false);
           });
