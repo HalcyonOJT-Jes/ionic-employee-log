@@ -11,10 +11,10 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 */
 @Injectable()
 export class DatabaseProvider {
-  photos : any;
+  photos: any;
   public db: any;
   _dbready = new BehaviorSubject<boolean>(false);
-  
+
   constructor(public platform: Platform, public http: HttpClient, private sqlite: SQLite) {
     this.platform.ready().then(() => {
       this.initializeStorage();
@@ -38,6 +38,18 @@ export class DatabaseProvider {
 
         // db.executeSql('drop table message', {}).then(() => {
         //   console.log("Dropped table : message");
+        // }).catch(e => {
+        //   console.log(e);
+        // });
+
+        // db.executeSql('drop table user', {}).then(() => {
+        //   console.log("Dropped table : user");
+        // }).catch(e => {
+        //   console.log(e);
+        // });
+
+        // db.executeSql('drop table log_images', {}).then(() => {
+        //   console.log("Dropped table : log_images");
         // }).catch(e => {
         //   console.log(e);
         // });
@@ -75,7 +87,7 @@ export class DatabaseProvider {
         }).catch(e => {
           console.log(e);
         });
-        
+
         /* log images table creation */
         /**
          * log_images 
@@ -84,22 +96,22 @@ export class DatabaseProvider {
          * --file
          */
 
-         db.executeSql('create table if not exists log_images(liId INTEGER PRIMARY KEY AUTOINCREMENT, logId INTEGER, file varchar(255), FOREIGN KEY(logId) REFERENCES log(id))', {}).then(() => {
-           console.log('Created log_images table');
-         }).catch(e => {
-           console.log(e);
-         })
+        db.executeSql('create table if not exists log_images(liId INTEGER PRIMARY KEY AUTOINCREMENT, logId INTEGER, file varchar(255), FOREIGN KEY(logId) REFERENCES log(id))', {}).then(() => {
+          console.log('Created log_images table');
+        }).catch(e => {
+          console.log(e);
+        })
 
-         /* user table creation*/
-         /**
-          * id
-          * userId
-          * pic
-          */
+        /* user table creation*/
+        /**
+         * id
+         * userId
+         * pic
+         */
 
-          db.executeSql('create table if not exists user(id INTEGER PRIMARY KEY AUTOINCREMENT, userId varchar(255) , pic varchar(255))', {}).then(() => {
-            console.log("Created user table.");
-          }).catch(e => console.log(e));
+        db.executeSql('create table if not exists user(id INTEGER PRIMARY KEY AUTOINCREMENT, userId varchar(255) , pic varchar(255))', {}).then(() => {
+          console.log("Created user table.");
+        }).catch(e => console.log(e));
         //////////////////////
         //custom sqls 
         resolve({ success: true });
@@ -110,6 +122,19 @@ export class DatabaseProvider {
     });
   }
 
+  getLastInsert(table) {
+    return new Promise((resolve, reject) => {
+      this.db.executeSql('select seq from sqlite_sequence where name = "' + table + '"', {}).then(data => {
+        if (data.rows.length > 0) resolve(data.rows.item(0).seq); else resolve(1);
+      }).catch(e => console.log(e));
+    });
+  }
 
-
+  getUserIntId(userId : string){
+    return new Promise((resolve, reject) => {
+      this.db.executeSql('select id from user where userId = "'+ userId +'"', {}).then(data => {
+        if(data.rows.length > 0) resolve(data.rows.item(0).id); else resolve(-1);
+      }).catch(e => console.log(e));
+    });
+  } 
 }

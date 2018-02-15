@@ -80,10 +80,15 @@ export class MenuPage {
     else this.sendLoading.setContent("Can't connect to server. Saving to local.").present();
 
     let t = Math.floor(Date.now() / 1000);
-    this.saveLog(t).then(logId => {
+    this.logService.saveLog(
+      t, 
+      this.locationService.lat, 
+      this.locationService.long, 
+      this.locationService.location, 
+      this.batteryService.currBattery
+    ).then(logId => {
       return this.saveLogImages(logId);
     }).then(() => {
-
       let images = this.database.photos.map((photo) => {
         return Promise.resolve("data:image/jpeg;base64," + photo.base64Data);
       });
@@ -96,7 +101,7 @@ export class MenuPage {
           this.socketService.socket.emit('cl-timeIn', {
             employeeId: this.employeeId.currentId,
             timeIn: t,
-            pic: imgs,
+            pics: imgs,
             map: {
               lng: this.locationService.long,
               lat: this.locationService.lat
@@ -122,9 +127,8 @@ export class MenuPage {
             this.logService.local_log.unshift(nm);
           })
         }
-      })
-    });
-
+      }).catch(e => console.log(e))
+    }).catch(e => console.log(e));
   }
 
   saveLogImages(logId) {
@@ -140,9 +144,10 @@ export class MenuPage {
 
       Promise.all(promise_array).then(() => {
         console.log("saved all images");
-        this.database.db.executeSql('select seq from sqlite_sequence where name = "log_images"', {}).then(data => {
-          let lastInsertedId: number;
-          if (data.rows.length > 0) lastInsertedId = data.rows.item(0).seq;
+        this.database.getLastInsert("log_images").then((id : number) => {
+          console.log("id: ", id);
+          let lastInsertedId : number;
+          if(id > 0)  lastInsertedId = id;
           else console.error('No log with logId : ' + lastInsertedId);
           console.log(lastInsertedId);
 
@@ -150,23 +155,11 @@ export class MenuPage {
             console.log("updated log table : saved log_image id to log");
             resolve();
           }).catch(e => console.log(e))
-        }).catch(e => console.log(e))
+        });
       }).catch(e => console.log(e));
     })
   }
-
-  saveLog(t) {
-    return new Promise((resolve, reject) => {
-      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + this.locationService.lat + ', ' + this.locationService.long + ', "' + this.locationService.location + '",' + this.batteryService.currBattery + ')', {}).then(() => {
-        this.database.db.executeSql('select seq from sqlite_sequence where name ="log"', {}).then(data => {
-          if (data.rows.length > 0) resolve(data.rows.item(0).seq);
-          else throw "Log table sequence not found."
-        }).catch(e => console.log(e));
-      }).catch(e => console.log(e));
-    })
-  }
-
-
+  
   closeMenu() {
     this.navCtrl.setRoot('HomePage');
   }

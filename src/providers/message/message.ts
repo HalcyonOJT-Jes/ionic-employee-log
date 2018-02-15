@@ -8,6 +8,7 @@ import { AuthProvider } from './../auth/auth';
 import { DatabaseProvider } from './../database/database';
 import { TimeProvider } from './../time/time';
 import { SocketProvider } from '../socket/socket';
+import { AccountProvider } from '../account/account';
 
 
 @Injectable()
@@ -16,7 +17,17 @@ export class MessageProvider {
   maxLocalUnix: number = 0;
   maxRemoteUnix: number = 0;
   messageSubscription : any;
-  constructor(private employees: EmployeesProvider, public http: HttpClient,  private timeService: TimeProvider, private database: DatabaseProvider, public localNotif: LocalNotifications, private platform: Platform, private auth: AuthProvider, private socketService : SocketProvider) {
+  constructor(
+    private employees     : EmployeesProvider,
+    public http           : HttpClient,
+    private timeService   : TimeProvider,
+    private database      : DatabaseProvider,
+    public localNotif     : LocalNotifications,
+    private platform      : Platform,
+    private auth          : AuthProvider,
+    private socketService : SocketProvider,
+    public accountService : AccountProvider
+  ) {
     this.auth.isAuth.subscribe(x => {
       if(x){
         this.messageSubscription = this.getMessage().subscribe((data: { sentAt: number, isMe: boolean, time: string, content: string }) => {
@@ -47,9 +58,9 @@ export class MessageProvider {
             if (++c == d) {
               this.messages = temp;
               this.database._dbready.subscribe((ready) => {
-                if (ready) {
-                  this.syncMessages(this.maxRemoteUnix, data);
-                }
+                // if (ready) {
+                //   this.syncMessages(this.maxRemoteUnix, data);
+                // }
               });
             }
           }
@@ -149,7 +160,7 @@ export class MessageProvider {
     this.platform.ready().then(() => {
       this.database._dbready.subscribe((ready) => {
         if (ready) {
-          this.database.db.executeSql('select * from message order by time', {}).then((data) => {
+          this.database.db.executeSql('select * from message inner join user on message.userId = user.id where user.userId = "'+ this.accountService.accountId +'" order by time', {}).then((data) => {
             let temp = [];
             if (data.rows.length > 0) {
               let c = 0;
@@ -180,6 +191,10 @@ export class MessageProvider {
       });
     });
     return observable;
+  }
+
+  saveMessage (unix, nm) {
+    return this.database.db.executeSql('insert into message(time, content, isMe, userId) VALUES(' + unix + ', "' + nm.content + '", 1, '+ this.accountService.accountIntId +')', {});
   }
 
   triggerLocalNotif(data) {

@@ -78,8 +78,7 @@ export class ChatPage {
       time: dt.time + " " + dt.am_pm
     }
 
-    //save message to local database
-    this.database.db.executeSql('insert into message(time, content, isMe) VALUES(' + unix + ', "' + nm.content + '", 1)', {}).then(() => {
+    this.messageService.saveMessage(unix, nm).then(() => {
       console.log("Messaged saved to local");
       if (this.connectionService.connection) {
         this.socketService.socket.emit('cl-sendNewMessage', nm, (res) => {
@@ -87,7 +86,6 @@ export class ChatPage {
         });
         console.log("message sent to server");
       } else {
-        console.log("connection to the serve cannot be established. message will be sent later.");
         this.messageService.messages.push(nm2);
         this.toast.create({
           message: 'Connection to server cannot be established. Message will be sent once connected.',
@@ -95,7 +93,6 @@ export class ChatPage {
           position: 'top'
         }).present();
       }
-      
     }).catch(e => {
       console.log(e);
     }).then(() => {

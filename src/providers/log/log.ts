@@ -9,6 +9,7 @@ import { Observable } from 'rxjs/Observable';
 import { ToastController } from 'ionic-angular/components/toast/toast-controller';
 import { AuthProvider } from './../auth/auth';
 import { SocketProvider } from '../socket/socket';
+import { AccountProvider } from '../account/account';
 
 @Injectable()
 export class LogProvider {
@@ -41,7 +42,8 @@ export class LogProvider {
     private platform        : Platform,
     private auth            : AuthProvider,
     private socketService   : SocketProvider,
-    private imageService    : ImageProvider
+    private imageService    : ImageProvider,
+    public accountService   : AccountProvider
   ) {
     console.log("Hello Log Provider");
     this.auth.isAuth.subscribe(x => {
@@ -67,10 +69,15 @@ export class LogProvider {
               console.log("yay");
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
                 this.local_log = logs;
+                if (this.local_log.length == 0){
+                  this.showLogLoader = false;
+                  this.showEmptyLog = true;
+                  return;
+                }
+                
                 this.findUnixMax().then((maxUnix) => {
                   console.log("max unix received : " + maxUnix);
-                  if (this.local_log.length == 0) this.showEmptyLog = true;
-                  this.showLogLoader = false;
+                  
                   // this.syncLogs(maxUnix, logs).then(() => {
                   //   this.local_log = logs;
                   //   console.log("sync complete");
@@ -107,7 +114,7 @@ export class LogProvider {
       let unixMax = this.time_in_list.reduce((a, b) => {
         return Math.max(a, b);
       });
-      if (unixMax) resolve(unixMax);
+      resolve(unixMax);
     });
   }
 
@@ -141,7 +148,7 @@ export class LogProvider {
     this.platform.ready().then(() => {
       this.database._dbready.subscribe((ready) => {
         if (ready) {
-          this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log order by timeIn DESC', {}).then((data) => {
+          this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log inner join user on log.userId = user.id where user.userId = "'+ this.accountService.accountId +'" order by timeIn DESC', {}).then((data) => {
             let temp = [];
             if (data.rows.length > 0) {
               let c = 0;
@@ -170,6 +177,10 @@ export class LogProvider {
   getRemoteLogs(data) {
     return new Promise((resolve, reject) => {
       let temp = [];
+      if(data.length == 0){
+        resolve(temp);
+        return;
+      }
       for (let log of data) {
         let dt = this.timeService.getDateTime(log.timeIn * 1000)
         log.time = dt.time + " " + dt.am_pm;
@@ -192,20 +203,15 @@ export class LogProvider {
 
         this.database.db.executeSql('select timeIn, isSeen, logId from log where timeIn = ' + log.timeIn, {}).then((data) => {
           if (data.rows.length == 0) {
-            // console.log("found new log from remote");
-            this.database.db.executeSql('insert into log(logId, timeIn, month, lat, long, formattedAddress, batteryStatus, isSeen, pic) VALUES("' + log._id + '", ' + log.timeIn + ', ' + month + ', ' + log.map.lat + ', ' + log.map.lng + ', "' + log.map.formattedAddress + '", ' + log.batteryStatus + ', ' + isSeen + ', "' + log.pic.original + '")', {}).then(() => {
-              // console.log(log._id + " added to local");
+            this.database.db.executeSql('insert into log(logId, timeIn, month, lat, long, formattedAddress, batteryStatus, isSeen, userId) VALUES("' + log._id + '", ' + log.timeIn + ', ' + month + ', ' + log.map.lat + ', ' + log.map.lng + ', "' + log.map.formattedAddress + '", ' + log.batteryStatus + ', ' + isSeen + ', '+ this.accountService.accountIntId +')', {}).then(() => {
+              console.log('log saved to local.');
             }).catch(e => {
               console.log(e);
             });
           } else {
-            // console.log("existing log");
             for (let i = 0; i < data.rows.length; i++) {
-              // console.log("checking for update");
               if (data.rows.item(i).isSeen != isSeen || data.rows.item(i).logId != log._id) {
-                // console.log("update found. updating local log.");
                 this.database.db.executeSql('update log set logId = "' + log._id + '", isSeen = ' + isSeen + ' where timeIn = ' + log.timeIn, {}).then((res) => {
-                  // console.log(res + " updated");
                 }).catch(e => {
                   console.log(e);
                 });
@@ -222,7 +228,7 @@ export class LogProvider {
 
   export(maxUnix) {
     return new Promise(resolve => {
-      this.database.db.executeSql('select * from log where timeIn > ' + maxUnix, {}).then((data) => {
+      this.database.db.executeSql('select * from log inner join user on log.userId = user.id where timeIn > ' + maxUnix + ' and user.userId = "'+ this.accountService.accountId +'"', {}).then((data) => {
         this.exportMax = data.rows.length;
         if (data.rows.length > 0) {
           console.log("exportMax > 0");
@@ -303,5 +309,15 @@ export class LogProvider {
       isSeen: false
     });
     console.log("log pushed");
+  }
+
+  saveLog(t, lat, long, loc, batt) {
+    return new Promise((resolve, reject) => {
+      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus, userId) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + lat + ', ' + long + ', "' + loc + '",' + batt + ', '+ this.accountService.accountIntId +')', {}).then(() => {
+        this.database.getLastInsert('log').then((id : number) => {
+          resolve(id);
+        }).catch(e => console.log(e));
+      }).catch(e => console.log(e));
+    })
   }
 }

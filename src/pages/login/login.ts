@@ -23,6 +23,7 @@ export class LoginPage {
       if (data.success === true) {
         this.auth.storage.set('token', data.token).then(res => {
           this.auth.validateToken(data.token).then(valid => {
+            console.log('valid: ', valid);
             if (valid) {
               this.navCtrl.setRoot('HomePage');
               this.auth.token = data.token;

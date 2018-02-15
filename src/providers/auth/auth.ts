@@ -60,8 +60,22 @@ export class AuthProvider {
         if (typeof token === "string") {
           //skip token validation if false; continue otherwise;
           if (!b) {
-            resolve(true);
-            return;
+            return this.storage.get('userId').then(userId => {
+              console.log('userId: ', userId);
+              if(typeof userId === "string"){
+                this.accountService.accountId = userId;
+                return this.database.db.executeSql('select id from user where userId = "'+ userId +'"', {}).then(data => {
+                  if(data.rows.length > 0){
+                    this.accountService.accountIntId = data.rows.item(0).id;
+                    console.log('data.rows.item(0).id;: ', data.rows.item(0).id);
+                    resolve(true); return;
+                  }else{
+                    console.log("yay");
+                    resolve(false); return;
+                  }
+                }).catch(e => console.log(e))
+              }
+            })
           }
 
           this.validateToken(token).then(valid => {
@@ -83,7 +97,16 @@ export class AuthProvider {
           'Content-Type': 'applicaton/json'
         })
       }).subscribe((data: any) => {
+        this.accountService.accountId = data._id;
         this.accountService.accountPic = data.pic.thumb;
+
+        this.accountService.accountExists(data._id).then(exists => {
+          if(!exists) this.accountService.saveUser(data._id, data.pic.thumb).catch(e => console.log(e));
+        });
+
+        this.storage.set('userId', data._id).then(() => {
+          console.log("saved user id to local storage");
+        });
         resolve(true);
       }, err => {
         resolve(false);
@@ -91,20 +114,4 @@ export class AuthProvider {
     });
   }
 
-  accountExists(userId : string){
-    return new Promise((resolve, reject) => {
-      this.database.db.executeSql('select count(*) from user where userId = ' + userId, {}).then(data => {
-        if(data.rows.length > 0) resolve(true); else resolve(false);
-      }).catch(e => console.log(e));
-    });
-  }
-
-  saveUser(userId : string, pic : string){
-    return new Promise((resolve, reject) => {
-      this.database.db.executeSql('insert into user(userId, pic) values("'+ userId +'", "'+ pic +'")', {}).then(() => {
-        console.log("User : " + userId + " saved to database.");
-        resolve(true);
-      }).catch(e => console.log(e));
-    });
-  }
 }
