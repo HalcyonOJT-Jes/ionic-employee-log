@@ -14,5 +14,5 @@ export class AccountProvider {
   constructor(public http: HttpClient) {
     console.log('Hello AccountProvider Provider');
   }
-
+  
 }

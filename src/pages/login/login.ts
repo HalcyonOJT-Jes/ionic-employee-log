@@ -16,7 +16,7 @@ export class LoginPage {
   constructor(public navCtrl: NavController, private loader: LoadingController, private alertController: AlertController, private auth: AuthProvider) {
   }
 
-  startDemo() {
+  login() {
     let loading = this.createLoginLoader();
     loading.present();
     this.auth.authenticate(this.username, this.password).then((data: any) => {

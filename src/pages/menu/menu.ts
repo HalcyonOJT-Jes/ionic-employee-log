@@ -11,6 +11,7 @@ import { BatteryProvider } from '../../providers/battery/battery';
 import { AlertController } from 'ionic-angular';
 import { LocationProvider } from '../../providers/location/location';
 import { IonicMultiCamera, Picture } from 'ionic-multi-camera';
+import { ImageProvider } from '../../providers/image/image';
 
 @IonicPage()
 @Component({
@@ -47,7 +48,23 @@ export class MenuPage {
     }]
   });
 
-  constructor(private navParams: NavParams, private file: File, private connectionService: ConnectionProvider, public alertCtrl: AlertController, public navCtrl: NavController, public employeeId: EmployeesProvider, public locationService: LocationProvider, public timeService: TimeProvider, public database: DatabaseProvider, private loader: LoadingController, public batteryService: BatteryProvider, private logService: LogProvider, private socketService: SocketProvider, public camera : IonicMultiCamera) {
+  constructor(
+    private navParams         : NavParams,
+    private file              : File,
+    private connectionService : ConnectionProvider,
+    public alertCtrl          : AlertController,
+    public navCtrl            : NavController,
+    public employeeId         : EmployeesProvider,
+    public locationService    : LocationProvider,
+    public timeService        : TimeProvider,
+    public database           : DatabaseProvider,
+    private loader            : LoadingController,
+    public batteryService     : BatteryProvider,
+    private logService        : LogProvider,
+    private socketService     : SocketProvider,
+    public camera             : IonicMultiCamera,
+    public imageService       : ImageProvider
+  ) {
     this.scanResult = this.navParams.get('scanResult');
     this.logService.logEntry().subscribe(() => {
       console.log("presented loading");
@@ -114,7 +131,7 @@ export class MenuPage {
     return new Promise((resolve, reject) => {
       //create array of promises
       let promise_array = this.database.photos.map((photo) => {
-        this.saveBase64(photo.base64Data, photo.fileEntry.name.replace(/.jpeg|.png|.gif/gi, '')).then((filename) => {
+        this.imageService.saveBase64(photo.base64Data, photo.fileEntry.name.replace(/.jpeg|.png|.gif/gi, '')).then((filename) => {
           this.database.db.executeSql('insert into log_images(logId, file) values(' + logId + ', "' + filename + '")', {}).then(() => {
             console.log(photo.fileEntry.name + "inserted to database.");
           }).catch(e => console.log(e));
@@ -149,44 +166,6 @@ export class MenuPage {
     })
   }
 
-  b64toBlob(b64Data, contentType) {
-    return new Promise((resolve, reject) => {
-      contentType = contentType || '';
-      let sliceSize = 512;
-
-      let byteCharacters = atob(b64Data);
-      let byteArrays = [];
-
-      for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-        let slice = byteCharacters.slice(offset, offset + sliceSize);
-        let byteNumbers = new Array(slice.length);
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-        }
-
-        let byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
-
-        if ((offset += sliceSize) >= byteCharacters.length) resolve(new Blob(byteArrays, { type: contentType }));
-      }
-    })
-  }
-
-  saveBase64(base64: string, name: string) {
-    return new Promise((resolve, reject) => {
-      let pictureDir = this.file.externalDataDirectory;
-
-      this.b64toBlob(base64, 'image/png').then((blob: any) => {
-        this.file.writeFile(pictureDir, name + ".png", blob).then(() => {
-          resolve(pictureDir + name + ".png");
-        }).catch(e => {
-          console.log('e: ', e);
-        })
-      }).catch(e => {
-        console.log(e);
-      });
-    });
-  }
 
   closeMenu() {
     this.navCtrl.setRoot('HomePage');
@@ -198,8 +177,8 @@ export class MenuPage {
     this.openCamera();
   }
 
-  openCamera () {
-    this.camera.getPicture().then((pictures : Array<Picture>) => {
+  openCamera() {
+    this.camera.getPicture().then((pictures: Array<Picture>) => {
       this.database.photos = pictures;
       this.openMapLoading.present().then(() => {
         this.navCtrl.push('MapViewPage');

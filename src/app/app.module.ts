@@ -44,6 +44,7 @@ import { MessageProvider } from '../providers/message/message';
 import { AuthProvider } from '../providers/auth/auth';
 import { SocketProvider } from '../providers/socket/socket';
 import { AccountProvider } from '../providers/account/account';
+import { ImageProvider } from '../providers/image/image';
 
 // const config: SocketIoConfig = { url: 'https://obscure-ridge-49316.herokuapp.com/', options: {} };
 // const config: SocketIoConfig = { url: 'https://socket-io-use.herokuapp.com/', options: {} };
@@ -94,7 +95,8 @@ import { AccountProvider } from '../providers/account/account';
     LocalNotifications,
     AuthProvider,
     SocketProvider,
-    AccountProvider
+    AccountProvider,
+    ImageProvider
   ]
 })
 export class AppModule {}

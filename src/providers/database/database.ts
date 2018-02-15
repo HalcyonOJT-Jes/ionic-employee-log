@@ -56,7 +56,7 @@ export class DatabaseProvider {
           --pic
         */
 
-        db.executeSql('create table if not exists log(id INTEGER PRIMARY KEY AUTOINCREMENT, logId varchar(255), timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic INTEGER)', {}).then(() => {
+        db.executeSql('create table if not exists log(id INTEGER PRIMARY KEY AUTOINCREMENT, logId varchar(255), userId INTEGER, timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic INTEGER, FOREIGN KEY(userId) REFERENCES user(id))', {}).then(() => {
           console.log('Created log table')
         }).catch(e => {
           console.log(e);
@@ -70,7 +70,7 @@ export class DatabaseProvider {
           --content
           --isMe
         */
-        db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, time INTEGER, content varchar(255), isMe INTEGER)', {}).then(() => {
+        db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, time INTEGER, content varchar(255), isMe INTEGER, FOREIGN KEY(userId) REFERENCES user(id))', {}).then(() => {
           console.log('Created message table')
         }).catch(e => {
           console.log(e);
@@ -94,8 +94,12 @@ export class DatabaseProvider {
          /**
           * id
           * userId
-          * 
+          * pic
           */
+
+          db.executeSql('create table if not exists user(id INTEGER PRIMARY KEY AUTOINCREMENT, userId varchar(255) , pic varchar(255))', {}).then(() => {
+            console.log("Created user table.");
+          }).catch(e => console.log(e));
         //////////////////////
         //custom sqls 
         resolve({ success: true });
@@ -105,5 +109,7 @@ export class DatabaseProvider {
       });
     });
   }
+
+
 
 }
