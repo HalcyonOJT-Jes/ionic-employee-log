@@ -7,6 +7,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { OneSignal } from '@ionic-native/onesignal';
 import { Storage } from '@ionic/storage';
 import { AuthProvider } from '../providers/auth/auth';
+import { SocketProvider } from '../providers/socket/socket';
 
 @Component({
   templateUrl: 'app.html'
@@ -17,7 +18,7 @@ export class MyApp {
   pages: Array<{title: string, component: any}>;
   employeeIds = [];
   
-  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider, private storage : Storage, private auth : AuthProvider) {
+  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider, private storage : Storage, private auth : AuthProvider, public socketService : SocketProvider) {
     platform.ready().then(() => {
       this.initializeApp();
       // this.initializeOneSignal();
@@ -51,6 +52,7 @@ export class MyApp {
     if(page.title !== 'Logout') this.nav.setRoot(page.component);
     else {
       this.storage.remove('token').then(() => {
+        this.socketService.socket.disconnect();
         this.auth.isAuth.next(false);
         this.nav.setRoot('LoginPage');
       }).catch(e => {
