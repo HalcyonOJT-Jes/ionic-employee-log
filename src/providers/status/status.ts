@@ -16,37 +16,47 @@ import { LocationProvider } from '../location/location';
 */
 @Injectable()
 export class StatusProvider {
-  connection : any;
-  
-  constructor(public http: HttpClient,  public batteryService: BatteryProvider, public connectionService: ConnectionProvider, public deviceService: DeviceProvider, public locationService: LocationProvider, public platform: Platform, private socketService : SocketProvider, public auth : AuthProvider) {
+  connection: any;
+
+  constructor(public http: HttpClient, public batteryService: BatteryProvider, public connectionService: ConnectionProvider, public deviceService: DeviceProvider, public locationService: LocationProvider, public platform: Platform, private socketService: SocketProvider, public auth: AuthProvider) {
     console.log('Hello StatusProvider Provider');
     this.auth.isAuth.subscribe(x => {
-      if(x){
+      if (x) {
+        this.socketService.socket.on('connect', () => {
+          this.platform.ready().then(() => {
+            this.sendMyStatus();
+          });
+        })
+
         this.socketService.socket.on('sv-myCurrentStatus', () => {
           console.log("sv-myCurrentStatus");
           this.platform.ready().then(() => {
-            this.socketService.socket.emit('cl-myCurrentStatus', {
-              battery:{
-                level : this.batteryService.currBattery,
-                plugged : this.batteryService.isPlugged
-              },
-              location : {
-                formattedAddress: this.locationService.location,
-                lat: this.locationService.lat,
-                lng: this.locationService.long,
-              },
-              connection: this.connectionService.network.type,
-              phone : {
-                model: this.deviceService.model,
-                platform: this.deviceService.platform,
-                manufacturer: this.deviceService.manufacturer,
-                serial: this.deviceService.serial,
-                uuid: this.deviceService.uuid
-              }
-            });
+            this.sendMyStatus();
           });
         });
       }
     })
+  }
+
+  sendMyStatus() {
+    this.socketService.socket.emit('cl-myCurrentStatus', {
+      battery: {
+        level: this.batteryService.currBattery,
+        plugged: this.batteryService.isPlugged
+      },
+      location: {
+        formattedAddress: this.locationService.location,
+        lat: this.locationService.lat,
+        lng: this.locationService.long,
+      },
+      connection: this.connectionService.network.type,
+      phone: {
+        model: this.deviceService.model,
+        platform: this.deviceService.platform,
+        manufacturer: this.deviceService.manufacturer,
+        serial: this.deviceService.serial,
+        uuid: this.deviceService.uuid
+      }
+    });
   }
 }

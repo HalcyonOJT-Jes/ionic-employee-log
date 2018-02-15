@@ -24,7 +24,6 @@ export class MyApp {
       // this.initializeOneSignal();
       //checks for connection; pass connection status to token existence check;
       let b : boolean = connection.network.type != 'none' ? true : false;
-      console.log(b);
       this.auth.checkExistingToken(b).then((valid) => {
         if(valid) {
           this.auth.isAuth.next(true);

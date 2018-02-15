@@ -1,10 +1,10 @@
+import { ImageProvider } from './../image/image';
 import { EmployeesProvider } from './../employees/employees';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TimeProvider } from './../time/time';
 import { DatabaseProvider } from '../database/database';
 import { Platform } from 'ionic-angular/platform/platform';
-import { Base64 } from '@ionic-native/base64';
 import { Observable } from 'rxjs/Observable';
 import { ToastController } from 'ionic-angular/components/toast/toast-controller';
 import { AuthProvider } from './../auth/auth';
@@ -32,7 +32,17 @@ export class LogProvider {
 
   logEntrySubscription: any;
 
-  constructor(private base64: Base64, public http: HttpClient, public timeService: TimeProvider, public database: DatabaseProvider, private employeeService: EmployeesProvider, private toast: ToastController, private platform: Platform, private auth: AuthProvider, private socketService: SocketProvider) {
+  constructor(
+    public http             : HttpClient,
+    public timeService      : TimeProvider,
+    public database         : DatabaseProvider,
+    private employeeService : EmployeesProvider,
+    private toast           : ToastController,
+    private platform        : Platform,
+    private auth            : AuthProvider,
+    private socketService   : SocketProvider,
+    private imageService    : ImageProvider
+  ) {
     console.log("Hello Log Provider");
     this.auth.isAuth.subscribe(x => {
       if (x) {
@@ -219,7 +229,7 @@ export class LogProvider {
           for (let i = 0; i < data.rows.length; i++) {
             console.log("sending local log to server");
             console.log("converting png to base64");
-            this.blobToB64(data.rows.item(i).pic).then((b64) => {
+            this.imageService.blobToB64(data.rows.item(i).pic).then((b64) => {
               console.log("image converted to b64; now uploading to server.");
 
               //send log to server
@@ -259,18 +269,6 @@ export class LogProvider {
         });
       }).catch(e => {
         console.log(e);
-      });
-    });
-  }
-
-  blobToB64(url) {
-    return new Promise((resolve, reject) => {
-      this.base64.encodeFile(url).then((b64File: string) => {
-        let b = b64File.split(';');
-        let b64 = 'data:image/png;base64,' + b[2].split(",")[1];
-        resolve(b64);
-      }).catch(e => {
-        reject(e);
       });
     });
   }
