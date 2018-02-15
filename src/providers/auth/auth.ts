@@ -1,3 +1,4 @@
+import { DatabaseProvider } from './../database/database';
 import { AccountProvider } from './../account/account';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, Inject } from '@angular/core';
@@ -9,7 +10,13 @@ import { SocketProvider } from '../socket/socket';
 export class AuthProvider {
   token: string;
   isAuth = new BehaviorSubject<boolean>(false);
-  constructor(public http: HttpClient, public storage: Storage, public socketService: SocketProvider, public accountService: AccountProvider) {
+  constructor(
+    public http           : HttpClient,
+    public storage        : Storage,
+    public socketService  : SocketProvider,
+    public accountService : AccountProvider,
+    public database       : DatabaseProvider
+  ) {
     this.isAuth.subscribe(x => {
       if (x) {
         console.log("ready for connection");
@@ -52,13 +59,13 @@ export class AuthProvider {
       this.storage.get('token').then(token => {
         if (typeof token === "string") {
           //skip token validation if false; continue otherwise;
-          if(!b){
+          if (!b) {
             resolve(true);
             return;
           }
 
           this.validateToken(token).then(valid => {
-            if(valid) resolve(true); else resolve(false);
+            if (valid) resolve(true); else resolve(false);
           });
         } else resolve(false);
       }).catch(e => {
@@ -84,5 +91,20 @@ export class AuthProvider {
     });
   }
 
+  accountExists(userId : string){
+    return new Promise((resolve, reject) => {
+      this.database.db.executeSql('select count(*) from user where userId = ' + userId, {}).then(data => {
+        if(data.rows.length > 0) resolve(true); else resolve(false);
+      }).catch(e => console.log(e));
+    });
+  }
 
+  saveUser(userId : string, pic : string){
+    return new Promise((resolve, reject) => {
+      this.database.db.executeSql('insert into user(userId, pic) values("'+ userId +'", "'+ pic +'")', {}).then(() => {
+        console.log("User : " + userId + " saved to database.");
+        resolve(true);
+      }).catch(e => console.log(e));
+    });
+  }
 }

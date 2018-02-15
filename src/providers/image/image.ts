@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { File } from '@ionic-native/file';
+import { Base64 } from '@ionic-native/base64';
 
 /*
   Generated class for the ImageProvider provider.
@@ -10,11 +11,25 @@ import { File } from '@ionic-native/file';
 */
 @Injectable()
 export class ImageProvider {
-
-  constructor(public http: HttpClient, public file: File) {
+  constructor(
+    public http     : HttpClient, 
+    public file     : File,
+    private base64  : Base64
+  ) {
     console.log('Hello ImageProvider Provider');
   }
 
+  blobToB64(url) {
+    return new Promise((resolve, reject) => {
+      this.base64.encodeFile(url).then((b64File: string) => {
+        let b = b64File.split(';');
+        let b64 = 'data:image/png;base64,' + b[2].split(",")[1];
+        resolve(b64);
+      }).catch(e => {
+        reject(e);
+      });
+    });
+  }
 
   b64toBlob(b64Data, contentType) {
     return new Promise((resolve, reject) => {
