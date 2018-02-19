@@ -34,16 +34,16 @@ export class LogProvider {
   logEntrySubscription: any;
 
   constructor(
-    public http             : HttpClient,
-    public timeService      : TimeProvider,
-    public database         : DatabaseProvider,
-    private employeeService : EmployeesProvider,
-    private toast           : ToastController,
-    private platform        : Platform,
-    private auth            : AuthProvider,
-    private socketService   : SocketProvider,
-    private imageService    : ImageProvider,
-    public accountService   : AccountProvider
+    public http: HttpClient,
+    public timeService: TimeProvider,
+    public database: DatabaseProvider,
+    private employeeService: EmployeesProvider,
+    private toast: ToastController,
+    private platform: Platform,
+    private auth: AuthProvider,
+    private socketService: SocketProvider,
+    private imageService: ImageProvider,
+    public accountService: AccountProvider
   ) {
     console.log("Hello Log Provider");
     this.auth.isAuth.subscribe(x => {
@@ -69,15 +69,18 @@ export class LogProvider {
               console.log("yay");
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
                 this.local_log = logs;
-                if (this.local_log.length == 0){
+                if (this.local_log.length == 0) {
                   this.showLogLoader = false;
                   this.showEmptyLog = true;
                   return;
                 }
-                
+
+                this.showLogLoader = false;
+                this.showEmptyLog = false;
+
                 this.findUnixMax().then((maxUnix) => {
                   console.log("max unix received : " + maxUnix);
-                  
+
                   // this.syncLogs(maxUnix, logs).then(() => {
                   //   this.local_log = logs;
                   //   console.log("sync complete");
@@ -120,7 +123,7 @@ export class LogProvider {
 
   getCustomLogs(month) {
     // get existing logs
-    this.database.db.executeSql('select * from log where month = ' + month + ' order by logId DESC', {}).then((data) => {
+    this.database.db.executeSql('select * from log inner join user on log.userId = user.id where month = ' + month + ' and user.userId = "' + this.accountService.accountId + '" order by logId DESC', {}).then((data) => {
       this.custom_log = [];
       if (data.rows.length > 0) {
         for (let i = 0; i < data.rows.length; i++) {
@@ -148,7 +151,7 @@ export class LogProvider {
     this.platform.ready().then(() => {
       this.database._dbready.subscribe((ready) => {
         if (ready) {
-          this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log inner join user on log.userId = user.id where user.userId = "'+ this.accountService.accountId +'" order by timeIn DESC', {}).then((data) => {
+          this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log inner join user on log.userId = user.id where user.userId = "' + this.accountService.accountId + '" order by timeIn DESC', {}).then((data) => {
             let temp = [];
             if (data.rows.length > 0) {
               let c = 0;
@@ -177,7 +180,7 @@ export class LogProvider {
   getRemoteLogs(data) {
     return new Promise((resolve, reject) => {
       let temp = [];
-      if(data.length == 0){
+      if (data.length == 0) {
         resolve(temp);
         return;
       }
@@ -203,7 +206,7 @@ export class LogProvider {
 
         this.database.db.executeSql('select timeIn, isSeen, logId from log where timeIn = ' + log.timeIn, {}).then((data) => {
           if (data.rows.length == 0) {
-            this.database.db.executeSql('insert into log(logId, timeIn, month, lat, long, formattedAddress, batteryStatus, isSeen, userId) VALUES("' + log._id + '", ' + log.timeIn + ', ' + month + ', ' + log.map.lat + ', ' + log.map.lng + ', "' + log.map.formattedAddress + '", ' + log.batteryStatus + ', ' + isSeen + ', '+ this.accountService.accountIntId +')', {}).then(() => {
+            this.database.db.executeSql('insert into log(logId, timeIn, month, lat, long, formattedAddress, batteryStatus, isSeen, userId) VALUES("' + log._id + '", ' + log.timeIn + ', ' + month + ', ' + log.map.lat + ', ' + log.map.lng + ', "' + log.map.formattedAddress + '", ' + log.batteryStatus + ', ' + isSeen + ', ' + this.accountService.accountIntId + ')', {}).then(() => {
               console.log('log saved to local.');
             }).catch(e => {
               console.log(e);
@@ -228,31 +231,46 @@ export class LogProvider {
 
   export(maxUnix) {
     return new Promise(resolve => {
-      this.database.db.executeSql('select * from log inner join user on log.userId = user.id where timeIn > ' + maxUnix + ' and user.userId = "'+ this.accountService.accountId +'"', {}).then((data) => {
+      this.database.db.executeSql('select timeIn, long, lat, batteryStatus, log.id from log inner join user on log.userId = user.id where timeIn > ' + maxUnix + ' and user.userId = "' + this.accountService.accountId + '"', {}).then((data) => {
         this.exportMax = data.rows.length;
+        let b64s = [];
+        
         if (data.rows.length > 0) {
           console.log("exportMax > 0");
           for (let i = 0; i < data.rows.length; i++) {
-            console.log("sending local log to server");
-            console.log("converting png to base64");
-            this.imageService.blobToB64(data.rows.item(i).pic).then((b64) => {
-              console.log("image converted to b64; now uploading to server.");
+            this.database.db.executeSql('select file from log_images where logId = ' + data.rows.item(i).id, {}).then(data2 => {
+                return new Promise((resolve, reject) => {
+                  if (data2.rows.length > 0) {
+                    let c = 0;
+                    for (let i = 0; i < data2.rows.length; i++) {
+                      this.imageService.blobToB64(data.rows.item(i).file).then(b64 => {
+                        b64s.push(b64);
+                        if (++c == data2.rows.length) resolve();
+                      }).catch(e => console.log(e));
+                    }
+                  }
+                })
+              }).catch(e => {
+                console.log(e);
+              }).then(() => {
+                console.log("sending local log to server");
+                console.log("converting png to base64");
+                this.imageService.blobToB64(data.rows.item(i).pic).then((b64) => {
+                  console.log("image converted to b64; now uploading to server.");
 
-              //send log to server
-              this.socketService.socket.emit('cl-timeIn', {
-                employeeId: this.employeeService.currentId,
-                timeIn: data.rows.item(i).timeIn,
-                pic: b64,
-                map: {
-                  lng: data.rows.item(i).long,
-                  lat: data.rows.item(i).lat
-                },
-                batteryStatus: data.rows.item(i).batteryStatus
+                  //send log to server
+                  this.socketService.socket.emit('cl-timeIn', {
+                    employeeId: this.employeeService.currentId,
+                    timeIn: data.rows.item(i).timeIn,
+                    pic: b64s,
+                    map: {
+                      lng: data.rows.item(i).long,
+                      lat: data.rows.item(i).lat
+                    },
+                    batteryStatus: data.rows.item(i).batteryStatus
+                  });
+                });
               });
-
-            }).catch(e => {
-              console.log(e);
-            });
           }
         } else {
           console.log("exportMax  < 0");
@@ -313,8 +331,8 @@ export class LogProvider {
 
   saveLog(t, lat, long, loc, batt) {
     return new Promise((resolve, reject) => {
-      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus, userId) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + lat + ', ' + long + ', "' + loc + '",' + batt + ', '+ this.accountService.accountIntId +')', {}).then(() => {
-        this.database.getLastInsert('log').then((id : number) => {
+      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus, userId) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + lat + ', ' + long + ', "' + loc + '",' + batt + ', ' + this.accountService.accountIntId + ')', {}).then(() => {
+        this.database.getLastInsert('log').then((id: number) => {
           resolve(id);
         }).catch(e => console.log(e));
       }).catch(e => console.log(e));

@@ -92,7 +92,7 @@ export class DatabaseProvider {
         /**
          * log_images 
          * *-liId
-         * **logId -> log(iyd)
+         * **logId -> log(id)
          * --file
          */
 
@@ -114,6 +114,7 @@ export class DatabaseProvider {
         }).catch(e => console.log(e));
         //////////////////////
         //custom sqls 
+        
         resolve({ success: true });
       }).catch(e => {
         console.log(e);

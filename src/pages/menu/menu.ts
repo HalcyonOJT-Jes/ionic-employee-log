@@ -49,21 +49,21 @@ export class MenuPage {
   });
 
   constructor(
-    private navParams         : NavParams,
-    private file              : File,
-    private connectionService : ConnectionProvider,
-    public alertCtrl          : AlertController,
-    public navCtrl            : NavController,
-    public employeeId         : EmployeesProvider,
-    public locationService    : LocationProvider,
-    public timeService        : TimeProvider,
-    public database           : DatabaseProvider,
-    private loader            : LoadingController,
-    public batteryService     : BatteryProvider,
-    private logService        : LogProvider,
-    private socketService     : SocketProvider,
-    public camera             : IonicMultiCamera,
-    public imageService       : ImageProvider
+    private navParams: NavParams,
+    private file: File,
+    private connectionService: ConnectionProvider,
+    public alertCtrl: AlertController,
+    public navCtrl: NavController,
+    public employeeId: EmployeesProvider,
+    public locationService: LocationProvider,
+    public timeService: TimeProvider,
+    public database: DatabaseProvider,
+    private loader: LoadingController,
+    public batteryService: BatteryProvider,
+    private logService: LogProvider,
+    private socketService: SocketProvider,
+    public camera: IonicMultiCamera,
+    public imageService: ImageProvider
   ) {
     this.scanResult = this.navParams.get('scanResult');
     this.logService.logEntry().subscribe(() => {
@@ -81,10 +81,10 @@ export class MenuPage {
 
     let t = Math.floor(Date.now() / 1000);
     this.logService.saveLog(
-      t, 
-      this.locationService.lat, 
-      this.locationService.long, 
-      this.locationService.location, 
+      t,
+      this.locationService.lat,
+      this.locationService.long,
+      this.locationService.location,
       this.batteryService.currBattery
     ).then(logId => {
       return this.saveLogImages(logId);
@@ -134,22 +134,20 @@ export class MenuPage {
   saveLogImages(logId) {
     return new Promise((resolve, reject) => {
       //create array of promises
+      console.log(this.database.photos);
       let promise_array = this.database.photos.map((photo) => {
-        this.imageService.saveBase64(photo.base64Data, photo.fileEntry.name.replace(/.jpeg|.png|.gif/gi, '')).then((filename) => {
-          this.database.db.executeSql('insert into log_images(logId, file) values(' + logId + ', "' + filename + '")', {}).then(() => {
-            console.log(photo.fileEntry.name + "inserted to database.");
+        return this.imageService.saveBase64(photo.base64Data, photo.fileEntry.name.replace(/.jpeg|.png|.gif/gi, '')).then((filename) => {;
+          return this.database.db.executeSql('insert into log_images(logId, file) values(' + logId + ', "' + filename + '")', {}).then(() => {
           }).catch(e => console.log(e));
         }).catch(e => console.log(e));
       });
 
-      Promise.all(promise_array).then(() => {
+      Promise.all(promise_array).then((a) => {
         console.log("saved all images");
-        this.database.getLastInsert("log_images").then((id : number) => {
-          console.log("id: ", id);
-          let lastInsertedId : number;
-          if(id > 0)  lastInsertedId = id;
+        this.database.getLastInsert("log").then((id: number) => {
+          let lastInsertedId: number;
+          if (id > 0) lastInsertedId = id;
           else console.error('No log with logId : ' + lastInsertedId);
-          console.log(lastInsertedId);
 
           this.database.db.executeSql('update log set pic = ' + lastInsertedId + ' where id = ' + logId, {}).then(() => {
             console.log("updated log table : saved log_image id to log");
@@ -159,7 +157,7 @@ export class MenuPage {
       }).catch(e => console.log(e));
     })
   }
-  
+
   closeMenu() {
     this.navCtrl.setRoot('HomePage');
   }

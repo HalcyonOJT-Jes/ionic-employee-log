@@ -49,7 +49,7 @@ export class ImageProvider {
         let byteArray = new Uint8Array(byteNumbers);
         byteArrays.push(byteArray);
 
-        if ((offset += sliceSize) >= byteCharacters.length) resolve(new Blob(byteArrays, { type: contentType }));
+        if ((offset + sliceSize) >= byteCharacters.length) resolve(new Blob(byteArrays, { type: contentType }));
       }
     })
   }
