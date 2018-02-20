@@ -58,6 +58,7 @@ export class DatabaseProvider {
           log
           *-id
           --logId
+          --userId
           --timeIn
           --month
           --lat
@@ -78,6 +79,7 @@ export class DatabaseProvider {
         /*
           message
           *-messageId
+          --userId
           --time
           --content
           --isMe

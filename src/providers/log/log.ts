@@ -64,37 +64,44 @@ export class LogProvider {
           console.log("received initial logs");
           this.database._dbready.subscribe((ready) => {
             if (ready) {
-              console.log("yay");
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
-                this.findUnixMax().then((maxUnix) => {
-                  console.log("max unix received : " + maxUnix);
-                  this.syncLogs(maxUnix, logs).then(() => {
-                    this.local_log = logs;
-                    if (this.local_log.length == 0) {
+                if(logs.length > 0){
+                  this.findUnixMax().then((maxUnix) => {
+                    this.syncLogs(maxUnix, logs).then(() => {
+                      this.local_log = logs;
+                      
                       this.showLogLoader = false;
-                      this.showEmptyLog = true;
-                      return;
-                    }
-
-                    this.showLogLoader = false;
-                    this.showEmptyLog = false;
-                    console.log("sync complete");
-                  });
-                }).catch(e => console.log(e));
+                      this.showEmptyLog = false;
+                      console.log("sync complete");
+                    });
+                  }).catch(e => console.log(e));
+                }else{
+                  this.showLogLoader = false;
+                  this.showEmptyLog = true;
+                  return;
+                }
               }).catch(e => console.log(e));
             }
           });
         });
+      } else {
+        //resets log and timeinlist(for maxunix upon logout)
+        this.local_log = [];
+        this.time_in_list = [];
       }
     });
   }
 
   findUnixMax() {
     return new Promise((resolve, reject) => {
-      let unixMax = this.time_in_list.reduce((a, b) => {
-        return Math.max(a, b);
-      });
-      resolve(unixMax);
+      if (this.time_in_list.length > 0) {
+        let unixMax = this.time_in_list.reduce((a, b) => {
+          return Math.max(a, b);
+        });
+        resolve(unixMax);
+      } else {
+        resolve(-1);
+      }
     });
   }
 
@@ -157,18 +164,25 @@ export class LogProvider {
   getRemoteLogs(data) {
     return new Promise((resolve, reject) => {
       let temp = [];
+      console.log('data.length: ', data.length);
+
       if (data.length == 0) {
         resolve(temp);
         return;
       }
+      let c = 0;
+      let d = data.length;
+      console.log('remote logs found: ', d);
+
       for (let log of data) {
+        console.log(c);
         let dt = this.timeService.getDateTime(log.timeIn * 1000)
         log.time = dt.time + " " + dt.am_pm;
         log.date = dt.date;
         temp.push(log);
-        //push to time in list to get the max unix
+        //push to time in list to find for the max unix
         this.time_in_list.push(log.timeIn);
-        resolve(temp);
+        if (++c == d) resolve(temp);
       }
     });
   }
@@ -258,6 +272,10 @@ export class LogProvider {
 
   syncLogs(maxUnix, remoteLogs) {
     return new Promise((resolve, reject) => {
+      if (maxUnix == -1) {
+        resolve();
+        return;
+      }
       this.syncStart.present();
       this.import(remoteLogs).then(() => {
         this.export(maxUnix).then(() => {
