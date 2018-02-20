@@ -66,12 +66,6 @@ export class MenuPage {
     public imageService: ImageProvider
   ) {
     this.scanResult = this.navParams.get('scanResult');
-    this.logService.logEntry().subscribe(() => {
-      console.log("presented loading");
-      this.sendLoading.dismiss().then(() => {
-        this.alert.present();
-      });
-    });
   }
 
   send() {
@@ -109,8 +103,11 @@ export class MenuPage {
             batteryStatus: this.batteryService.currBattery,
             msg: this.message,
             scanResult: this.scanResult
-          }, (res) => {
-            console.log(res);
+          }, (data) => {
+            this.sendLoading.dismiss().then(() => {
+              this.alert.present();
+            });
+            this.logService.logEntry(data);
           });
         } else {
           this.sendLoading.dismiss().then(() => {

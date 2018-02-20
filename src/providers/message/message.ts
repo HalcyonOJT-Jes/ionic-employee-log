@@ -47,14 +47,13 @@ export class MessageProvider {
     
         this.socketService.socket.on('sv-sendInitMessages', (data) => {
           let c = 0;
-          let d = data.length;
+          let d = data.messages.length;
           let temp = [];
-          for (let i of data) {
+          for (let i of data.messages) {
             let dt = this.timeService.getDateTime(i.sentAt * 1000);
             i.time = dt.time + " " + dt.am_pm;
             if (this.maxRemoteUnix < i.sentAt) this.maxRemoteUnix = i.sentAt;
             temp.push(i);
-    
             if (++c == d) {
               this.messages = temp;
               this.database._dbready.subscribe((ready) => {

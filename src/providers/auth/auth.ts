@@ -26,6 +26,7 @@ export class AuthProvider {
           }
         });
         this.socketService.socket.connect();
+        
       }
     });
   }

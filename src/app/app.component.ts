@@ -14,32 +14,32 @@ import { SocketProvider } from '../providers/socket/socket';
 })
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
-  rootPage:string;
-  pages: Array<{title: string, component: any}>;
+  rootPage: string;
+  pages: Array<{ title: string, component: any }>;
   employeeIds = [];
-  
-  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection : ConnectionProvider, private oneSignal : OneSignal, private messages : MessageProvider, private storage : Storage, private auth : AuthProvider, public socketService : SocketProvider) {
+
+  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection: ConnectionProvider, private oneSignal: OneSignal, private messages: MessageProvider, private storage: Storage, private auth: AuthProvider, public socketService: SocketProvider) {
     platform.ready().then(() => {
       this.initializeApp();
       // this.initializeOneSignal();
       //checks for connection; pass connection status to token existence check;
-      let b : boolean = connection.network.type != 'none' ? true : false;
+      let b: boolean = connection.network.type != 'none' ? true : false;
       this.auth.checkExistingToken(b).then((valid) => {
-        if(valid) {
+        if (valid) {
           this.auth.isAuth.next(true);
           this.rootPage = 'HomePage';
-        }else this.rootPage = 'LoginPage';
+        } else this.rootPage = 'LoginPage';
       }).catch(e => {
         console.log(e);
       });
     });
 
     this.pages = [
-      { title : 'Home', component: 'HomePage'},
-      { title : 'Log', component: 'LogPage'},
-      { title : 'Chat', component: 'ChatPage'},
-      { title : 'Location Simulation', component : 'MapPage'},
-      { title : 'Logout', component : ''}
+      { title: 'Home', component: 'HomePage' },
+      { title: 'Log', component: 'LogPage' },
+      { title: 'Chat', component: 'ChatPage' },
+      { title: 'Location Simulation', component: 'MapPage' },
+      { title: 'Logout', component: '' }
     ];
 
     this.messages.localNotif.on('click', () => {
@@ -47,8 +47,8 @@ export class MyApp {
     });
   }
 
-  openPage(page){
-    if(page.title !== 'Logout') this.nav.setRoot(page.component);
+  openPage(page) {
+    if (page.title !== 'Logout') this.nav.setRoot(page.component);
     else {
       this.storage.remove('token').then(() => {
         this.socketService.socket.disconnect();
@@ -60,8 +60,9 @@ export class MyApp {
     }
   }
 
-  initializeApp(){
+  initializeApp() {
     console.log("initializeApp()");
+    
   }
 
   // initializeOneSignal(){

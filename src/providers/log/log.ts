@@ -31,8 +31,6 @@ export class LogProvider {
     duration: 3000
   })
 
-  logEntrySubscription: any;
-
   constructor(
     public http: HttpClient,
     public timeService: TimeProvider,
@@ -68,46 +66,25 @@ export class LogProvider {
             if (ready) {
               console.log("yay");
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
-                this.local_log = logs;
-                if (this.local_log.length == 0) {
-                  this.showLogLoader = false;
-                  this.showEmptyLog = true;
-                  return;
-                }
-
-                this.showLogLoader = false;
-                this.showEmptyLog = false;
-
                 this.findUnixMax().then((maxUnix) => {
                   console.log("max unix received : " + maxUnix);
+                  this.syncLogs(maxUnix, logs).then(() => {
+                    this.local_log = logs;
+                    if (this.local_log.length == 0) {
+                      this.showLogLoader = false;
+                      this.showEmptyLog = true;
+                      return;
+                    }
 
-                  // this.syncLogs(maxUnix, logs).then(() => {
-                  //   this.local_log = logs;
-                  //   console.log("sync complete");
-                  // });
+                    this.showLogLoader = false;
+                    this.showEmptyLog = false;
+                    console.log("sync complete");
+                  });
                 }).catch(e => console.log(e));
               }).catch(e => console.log(e));
             }
           });
         });
-
-        this.logEntrySubscription = this.logEntry().subscribe((data: { id: string, timeIn: number, formattedAddress: string }) => {
-          if (++this.exportCounter == this.exportMax) {
-            this.syncEnd.present();
-          }
-
-          if (data.id) {
-            console.log("pushing log to log array");
-            this.local_log = this.local_log.filter(x => {
-              return x.hasOwnProperty('_id');
-            });
-
-            this.pushLog(data.id, data.timeIn, data.formattedAddress);
-
-          }
-        });
-      } else {
-        if (this.logEntrySubscription != undefined) this.logEntrySubscription.unsubscribe();
       }
     });
   }
@@ -204,81 +181,79 @@ export class LogProvider {
         let month = new Date(log.timeIn).getMonth();
         let isSeen = log.isSeen == true ? 1 : 0;
 
-        this.database.db.executeSql('select timeIn, isSeen, logId from log where timeIn = ' + log.timeIn, {}).then((data) => {
+        this.database.db.executeSql('select timeIn, isSeen, logId from log where timeIn = ' + log.timeIn, {}).then(data => {
           if (data.rows.length == 0) {
+            console.log("Found new remote logs.");
             this.database.db.executeSql('insert into log(logId, timeIn, month, lat, long, formattedAddress, batteryStatus, isSeen, userId) VALUES("' + log._id + '", ' + log.timeIn + ', ' + month + ', ' + log.map.lat + ', ' + log.map.lng + ', "' + log.map.formattedAddress + '", ' + log.batteryStatus + ', ' + isSeen + ', ' + this.accountService.accountIntId + ')', {}).then(() => {
               console.log('log saved to local.');
-            }).catch(e => {
-              console.log(e);
-            });
+            }).catch(e => console.log(e));
           } else {
             for (let i = 0; i < data.rows.length; i++) {
               if (data.rows.item(i).isSeen != isSeen || data.rows.item(i).logId != log._id) {
                 this.database.db.executeSql('update log set logId = "' + log._id + '", isSeen = ' + isSeen + ' where timeIn = ' + log.timeIn, {}).then((res) => {
-                }).catch(e => {
-                  console.log(e);
-                });
+                  console.log("log updated: " + log._id);
+                }).catch(e => console.log(e));
               } else console.log("current log is updated; skipping.");
             }
           }
           if (++c == l) resolve();
-        }).catch(e => {
-          console.log(e);
-        });
+        }).catch(e => console.log(e));
       }
     });
   }
 
   export(maxUnix) {
-    return new Promise(resolve => {
-      this.database.db.executeSql('select timeIn, long, lat, batteryStatus, log.id from log inner join user on log.userId = user.id where timeIn > ' + maxUnix + ' and user.userId = "' + this.accountService.accountId + '"', {}).then((data) => {
+    return this.database.db.executeSql('select timeIn, long, lat, batteryStatus, log.id from log inner join user on log.userId = user.id where timeIn > ' + maxUnix + ' and user.userId = "' + this.accountService.accountId + '"', {})
+      .then((data) => {
         this.exportMax = data.rows.length;
-        let b64s = [];
-        
+
         if (data.rows.length > 0) {
-          console.log("exportMax > 0");
+          console.log('Exportable found : ', data.rows.length);
+          let c = 0;
           for (let i = 0; i < data.rows.length; i++) {
             this.database.db.executeSql('select file from log_images where logId = ' + data.rows.item(i).id, {}).then(data2 => {
-                return new Promise((resolve, reject) => {
-                  if (data2.rows.length > 0) {
-                    let c = 0;
-                    for (let i = 0; i < data2.rows.length; i++) {
-                      this.imageService.blobToB64(data.rows.item(i).file).then(b64 => {
-                        b64s.push(b64);
-                        if (++c == data2.rows.length) resolve();
-                      }).catch(e => console.log(e));
-                    }
+              return new Promise((resolve, reject) => {
+                if (data2.rows.length > 0) {
+                  let d = 0;
+                  let b64s = [];
+                  for (let i = 0; i < data2.rows.length; i++) {
+                    this.imageService.blobToB64(data2.rows.item(i).file).then(b64 => {
+                      b64s.push(b64);
+                      if (++d == data2.rows.length) resolve(b64s);
+                    }).catch(e => console.log(e));
                   }
-                })
-              }).catch(e => {
-                console.log(e);
-              }).then(() => {
-                console.log("sending local log to server");
-                console.log("converting png to base64");
-                this.imageService.blobToB64(data.rows.item(i).pic).then((b64) => {
-                  console.log("image converted to b64; now uploading to server.");
+                }
+              })
+            }).catch(e => {
+              console.log(e);
+            }).then(b64s => {
+              console.log("sending local log to server");
 
-                  //send log to server
-                  this.socketService.socket.emit('cl-timeIn', {
-                    employeeId: this.employeeService.currentId,
-                    timeIn: data.rows.item(i).timeIn,
-                    pic: b64s,
-                    map: {
-                      lng: data.rows.item(i).long,
-                      lat: data.rows.item(i).lat
-                    },
-                    batteryStatus: data.rows.item(i).batteryStatus
-                  });
-                });
+              //send log to server
+              this.socketService.socket.emit('cl-timeIn', {
+                employeeId: this.employeeService.currentId,
+                timeIn: data.rows.item(i).timeIn,
+                pics: b64s,
+                map: {
+                  lng: data.rows.item(i).long,
+                  lat: data.rows.item(i).lat
+                },
+                batteryStatus: data.rows.item(i).batteryStatus
+              }, (respData) => {
+                this.logEntry(respData);
+                if (++c == data.rows.length) {
+                  this.syncEnd.present();
+                  return;
+                }
               });
+            });
           }
         } else {
-          console.log("exportMax  < 0");
+          console.log("No exportable found.");
           this.syncEnd.present();
-          resolve();
+          return;
         }
       });
-    });
   }
 
   syncLogs(maxUnix, remoteLogs) {
@@ -305,13 +280,14 @@ export class LogProvider {
     return index;
   }
 
-  logEntry() {
-    let obs = new Observable((observable) => {
-      this.socketService.socket.on('sv-successTimeIn', (data) => {
-        observable.next(data);
+  logEntry(data) {
+    if (data.id) {
+      console.log("pushing log to log array");
+      this.local_log = this.local_log.filter(x => {
+        return x.hasOwnProperty('_id');
       });
-    });
-    return obs;
+      this.pushLog(data.id, data.timeIn, data.formattedAddress);
+    }
   }
 
   pushLog(id, t, location) {
