@@ -1,3 +1,4 @@
+import { SafeResourcePipe } from './../../pipes/safe-resource/safe-resource';
 import { SocketProvider } from './../../providers/socket/socket';
 import { File } from '@ionic-native/file';
 import { ConnectionProvider } from './../../providers/connection/connection';
@@ -13,10 +14,11 @@ import { LocationProvider } from '../../providers/location/location';
 import { IonicMultiCamera, Picture } from 'ionic-multi-camera';
 import { ImageProvider } from '../../providers/image/image';
 
+
 @IonicPage()
 @Component({
   selector: 'page-menu',
-  templateUrl: 'menu.html',
+  templateUrl: 'menu.html'
 })
 export class MenuPage {
   message: string;

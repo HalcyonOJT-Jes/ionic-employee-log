@@ -10,7 +10,7 @@
       <ion-col col-6 offset-3 class="today">
         <div class="date">{{ this.timeService.curUnix * 1000 | date:'EEE, MMM d, y' }}</div>
         <div class="time">{{ this.timeService.curUnix * 1000 | date:'h:mm:ss' }} {{ this.timeService.curUnix * 1000 | date: 'a' | lowercase }}</div>
-        <button ion-button color="btnPrimary" large (click)="openCamera()">CLOCK IN</button>
+        <button ion-button color="btnPrimary" large (click)="clockIn()">CLOCK IN</button>
       </ion-col>
     </ion-row>
   </ion-grid>
