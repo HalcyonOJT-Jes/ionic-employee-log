@@ -28,6 +28,7 @@ import { BarcodeScanner } from '@ionic-native/barcode-scanner';
 import { OneSignal } from '@ionic-native/onesignal';
 import { LocalNotifications } from '@ionic-native/local-notifications';
 import { IonicMultiCameraModule } from 'ionic-multi-camera';
+import { ImagePicker } from '@ionic-native/image-picker';
 
 import { MyApp } from './app.component';
 
@@ -46,6 +47,8 @@ import { SocketProvider } from '../providers/socket/socket';
 import { AccountProvider } from '../providers/account/account';
 import { ImageProvider } from '../providers/image/image';
 
+import { PipesModule } from '../pipes/pipes.module';
+
 // const config: SocketIoConfig = { url: 'https://obscure-ridge-49316.herokuapp.com/', options: {} };
 // const config: SocketIoConfig = { url: 'https://socket-io-use.herokuapp.com/', options: {} };
 // const config: SocketIoConfig = { url: 'http://192.168.1.73:8080', options: { autoConnect : false } };
@@ -53,7 +56,7 @@ import { ImageProvider } from '../providers/image/image';
 
 @NgModule({
   declarations: [
-    MyApp
+    MyApp,
     ],
   imports: [
     BrowserModule,
@@ -61,12 +64,14 @@ import { ImageProvider } from '../providers/image/image';
     IonicModule.forRoot(MyApp),
     IonicStorageModule.forRoot(),
     IonicMultiCameraModule.forRoot(),
+    PipesModule.forRoot()
   ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp
     ],
   providers: [
+    ImagePicker,
     StatusBar,
     SplashScreen,
     Camera,

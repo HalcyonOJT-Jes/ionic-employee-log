@@ -96,7 +96,7 @@ export class MapViewPage {
   }
 
   cancel() {
-    this.navCtrl.push('HomePage');
+    this.navCtrl.setRoot('HomePage');
   }
 
   ionViewDidLoad() {
