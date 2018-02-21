@@ -66,7 +66,7 @@ export class HomePage {
                     let c = 0;
 
                     for (let i = 0; i < results.length; i++) {
-                      this.imageService.blobToB64(results[i], false).then(b64 => {
+                      this.imageService.urlToB64(results[i], true).then(b64 => {
                         let name = results[i].split('/');
                         name = name[name.length - 1];
                         temp.push({

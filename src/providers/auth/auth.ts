@@ -5,17 +5,19 @@ import { Injectable, Inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Storage } from '@ionic/storage';
 import { SocketProvider } from '../socket/socket';
+import { ImageProvider } from '../image/image';
 
 @Injectable()
 export class AuthProvider {
   token: string;
   isAuth = new BehaviorSubject<boolean>(false);
   constructor(
-    public http           : HttpClient,
-    public storage        : Storage,
-    public socketService  : SocketProvider,
-    public accountService : AccountProvider,
-    public database       : DatabaseProvider
+    public http: HttpClient,
+    public storage: Storage,
+    public socketService: SocketProvider,
+    public accountService: AccountProvider,
+    public database: DatabaseProvider,
+    public imageService: ImageProvider
   ) {
     this.isAuth.subscribe(x => {
       if (x) {
@@ -26,7 +28,7 @@ export class AuthProvider {
           }
         });
         this.socketService.socket.connect();
-        
+
       }
     });
   }
@@ -63,14 +65,16 @@ export class AuthProvider {
           if (!b) {
             return this.storage.get('userId').then(userId => {
               console.log('userId: ', userId);
-              if(typeof userId === "string"){
+              if (typeof userId === "string") {
                 this.accountService.accountId = userId;
-                return this.database.db.executeSql('select id from user where userId = "'+ userId +'"', {}).then(data => {
-                  if(data.rows.length > 0){
+                return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {}).then(data => {
+                  if (data.rows.length > 0) {
                     this.accountService.accountIntId = data.rows.item(0).id;
-                    console.log('data.rows.item(0).id;: ', data.rows.item(0).id);
+                    this.accountService.accountIntId = data.rows.item(0).pic;
+                    this.accountService.accountIntId = data.rows.item(0).userId;
+                    
                     resolve(true); return;
-                  }else{
+                  } else {
                     console.log("yay");
                     resolve(false); return;
                   }
@@ -98,17 +102,32 @@ export class AuthProvider {
           'Content-Type': 'applicaton/json'
         })
       }).subscribe((data: any) => {
-        this.accountService.accountId = data._id;
-        this.accountService.accountPic = data.pic.thumb;
-
         this.accountService.accountExists(data._id).then(exists => {
-          if(!exists) this.accountService.saveUser(data._id, data.pic.thumb).catch(e => console.log(e));
+          console.log(data);
+          if (!exists) {
+            this.imageService.onlineUrlToB64(data.pic.thumb, true)
+              .then((b64: string) => {
+                let name = data.pic.thumb.split('/');
+                name = name[name.length - 1].split('.')[0];
+                console.log('name: ', name);
+                return this.imageService.saveBase64(b64, name);
+              })
+              .catch(e => console.log(e))
+              .then((filePath: string) => {
+                console.log("User image saved : " + filePath);
+                return this.accountService.saveUser(data._id, filePath);
+              })
+              .catch(e => console.log(e))
+              .then(() => {
+                return this.storage.set('userId', data._id);
+              })
+              .catch(e => console.log(e))
+              .then(() => {
+                console.log("Account saved.");
+                resolve(true);
+              });
+          }else resolve(true)
         });
-
-        this.storage.set('userId', data._id).then(() => {
-          console.log("saved user id to local storage");
-        });
-        resolve(true);
       }, err => {
         resolve(false);
       });

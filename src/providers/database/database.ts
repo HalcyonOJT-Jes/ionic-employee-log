@@ -108,7 +108,7 @@ export class DatabaseProvider {
         /**
          * id
          * userId
-         * pic
+         * pic (file path)
          */
 
         db.executeSql('create table if not exists user(id INTEGER PRIMARY KEY AUTOINCREMENT, userId varchar(255) , pic varchar(255))', {}).then(() => {

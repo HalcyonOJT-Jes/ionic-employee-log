@@ -22,9 +22,12 @@ export class AccountProvider {
 
   accountExists(userId : string){
     return new Promise((resolve, reject) => {
-      this.database.db.executeSql('select id from user where userId = "' + userId+ '"', {}).then(data => {
-        if(data.rows.length > 0){
+      this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId+ '"', {}).then(data => {
+        if(data.rows.length == 1){
+          console.log(data.rows.item(0).pic);
           this.accountIntId = data.rows.item(0).id;
+          this.accountPic = data.rows.item(0).pic;
+          this.accountId = data.rows.item(0).userId;
           resolve(true);
         } else resolve(false);
       }).catch(e => console.log(e));
@@ -36,6 +39,8 @@ export class AccountProvider {
       this.database.db.executeSql('insert into user(userId, pic) values("'+ userId +'", "'+ pic +'")', {}).then(() => {
         console.log("User : " + userId + " saved to database.");
         this.database.getLastInsert('user').then((id : number) => {
+          this.accountId = userId;
+          this.accountPic = pic;
           this.accountIntId = id;
           resolve(true);
         }).catch(e => console.log(e));

@@ -223,7 +223,7 @@ export class LogProvider {
                   let d = 0;
                   let b64s = [];
                   for (let i = 0; i < data2.rows.length; i++) {
-                    this.imageService.blobToB64(data2.rows.item(i).file, true).then(b64 => {
+                    this.imageService.urlToB64(data2.rows.item(i).file, false).then(b64 => {
                       b64s.push(b64);
                       if (++d == data2.rows.length) resolve(b64s);
                     }).catch(e => console.log(e));
