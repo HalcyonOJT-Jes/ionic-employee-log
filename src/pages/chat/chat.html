@@ -22,7 +22,7 @@
       <div  class="message other_message">
         <span>{{ message.content }}</span>
       </div>
-      <div class="time" class="float: left">{{ message.time }}</div>
+      <div class="time" class="float: left">{{ message.unix * 1000 | date:'h:mm' }} {{ message.unix * 1000 | date: 'a' | lowercase }}</div>
     </ion-col>
 
     <!-- employee -->
@@ -30,7 +30,7 @@
       <div class="message my_message">
         <span>{{ message.content }}</span>
       </div>
-      <div class="time" style="float: right">{{ message.time }}</div>
+      <div class="time" style="float: right">{{ message.unix * 1000 | date:'h:mm' }} {{ message.unix * 1000 | date: 'a' | lowercase }}</div>
     </ion-col>
     <ion-col col-2 *ngIf="message.isMe" >
       <img [src]="accountService.accountPic">

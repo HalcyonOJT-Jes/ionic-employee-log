@@ -66,7 +66,6 @@ export class ChatPage {
 
   sendMessage() {
     let unix = this.timeService.curUnix;
-    let dt = this.timeService.getDateTime(unix * 1000);
 
     let nm = {
       content: this.message
@@ -75,7 +74,7 @@ export class ChatPage {
     let nm2 = {
       content: this.message,
       isMe: true,
-      time: dt.time + " " + dt.am_pm
+      unix: unix
     }
 
     this.messageService.saveMessage(unix, nm).then(() => {

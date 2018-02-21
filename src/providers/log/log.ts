@@ -111,12 +111,10 @@ export class LogProvider {
       this.custom_log = [];
       if (data.rows.length > 0) {
         for (let i = 0; i < data.rows.length; i++) {
-          let dt = this.timeService.getDateTime(data.rows.item(i).time * 1000);
 
           this.custom_log.push({
             id: data.rows.item(i).logId,
-            time: dt.time + " " + dt.am_pm,
-            date: dt.date,
+            unix: data.rows.item(i).time,
             map: {
               formattedAddress: data.rows.item(i).location
             },
@@ -140,11 +138,8 @@ export class LogProvider {
             if (data.rows.length > 0) {
               let c = 0;
               for (let i = 0; i < data.rows.length; i++) {
-                let dt = this.timeService.getDateTime(data.rows.item(i).timeIn * 1000);
-
                 temp.push({
-                  time: dt.time + " " + dt.am_pm,
-                  date: dt.date,
+                  unix: data.rows.item(i).timeIn,
                   map: {
                     formattedAddress: data.rows.item(i).formattedAddress
                   },
@@ -175,10 +170,7 @@ export class LogProvider {
       console.log('remote logs found: ', d);
 
       for (let log of data) {
-        console.log(c);
-        let dt = this.timeService.getDateTime(log.timeIn * 1000)
-        log.time = dt.time + " " + dt.am_pm;
-        log.date = dt.date;
+        log.unix = log.timeIn;
         temp.push(log);
         //push to time in list to find for the max unix
         this.time_in_list.push(log.timeIn);
@@ -310,11 +302,9 @@ export class LogProvider {
 
   pushLog(id, t, location) {
     //push to log array
-    let dt = this.timeService.getDateTime(t * 1000);
     this.local_log.unshift({
       _id: id,
-      time: dt.time + " " + dt.am_pm,
-      date: dt.date,
+      unix: t,
       map: {
         formattedAddress: location
       },

@@ -1,20 +1,17 @@
 page-home {
     overflow: hidden;
     .today{
-        padding: 10vw 0 10vw;
+        padding: 3em 0;
         text-align: center;
         color: $white;
         .date{
-            font-size: 4vw;
+            font-size: 1em;
         }
         .time{
-            font-size: 9vw;
+            white-space: nowrap;
+            font-size: 2em;
             font-weight: bold;
             margin-bottom: 2vw;
-            span{
-                font-size: 6vw;
-                font-weight: 100;
-            }
         }
         button{
             width: 100%;

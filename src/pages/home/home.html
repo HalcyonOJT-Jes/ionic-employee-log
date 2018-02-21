@@ -8,10 +8,8 @@
   <ion-grid class="hero" color="secondary">
     <ion-row>
       <ion-col col-6 offset-3 class="today">
-        <div class="date">{{ this.timeService.dateTime.date }}</div>
-        <div class="time">{{ this.timeService.dateTime.time }}
-          <span>{{ this.timeService.dateTime.am_pm }}</span>
-        </div>
+        <div class="date">{{ this.timeService.curUnix * 1000 | date:'EEE, MMM d, y' }}</div>
+        <div class="time">{{ this.timeService.curUnix * 1000 | date:'h:mm:ss' }} {{ this.timeService.curUnix * 1000 | date: 'a' | lowercase }}</div>
         <button ion-button color="btnPrimary" large (click)="openCamera()">CLOCK IN</button>
       </ion-col>
     </ion-row>
@@ -37,11 +35,11 @@
             </div>
           </ion-col>
           <ion-col col-7>
-            <div class="date">{{ l.date }}</div>
+            <div class="date">{{ l.unix * 1000 | date:'EEE, MMM d, y' }}</div>
             <div class="location">{{ l.map.formattedAddress }}</div>
           </ion-col>
           <ion-col col-3>
-            <span class="time"> {{ l.time }}</span>
+            <span class="time"> {{ l.unix * 1000 | date:'h:mm' }} {{ l.unix * 1000 | date: 'a' | lowercase }}</span>
             <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true || l.isSeen == 1) ? 'seen' : 'not-seen' "></ion-icon>
           </ion-col>
         </ion-row>

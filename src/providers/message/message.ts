@@ -10,7 +10,6 @@ import { TimeProvider } from './../time/time';
 import { SocketProvider } from '../socket/socket';
 import { AccountProvider } from '../account/account';
 
-
 @Injectable()
 export class MessageProvider {
   messages = [];
@@ -18,19 +17,19 @@ export class MessageProvider {
   maxRemoteUnix: number = 0;
   messageSubscription: any;
   constructor(
-    private employees: EmployeesProvider,
-    public http: HttpClient,
-    private timeService: TimeProvider,
-    private database: DatabaseProvider,
-    public localNotif: LocalNotifications,
-    private platform: Platform,
-    private auth: AuthProvider,
-    private socketService: SocketProvider,
-    public accountService: AccountProvider
+    private employees     : EmployeesProvider,
+    public http           : HttpClient,
+    private timeService   : TimeProvider,
+    private database      : DatabaseProvider,
+    public localNotif     : LocalNotifications,
+    private platform      : Platform,
+    private auth          : AuthProvider,
+    private socketService : SocketProvider,
+    public accountService : AccountProvider
   ) {
     this.auth.isAuth.subscribe(x => {
       if (x) {
-        this.messageSubscription = this.getMessage().subscribe((data: { sentAt: number, isMe: boolean, time: string, content: string }) => {
+        this.messageSubscription = this.getMessage().subscribe((data: { sentAt: number, isMe: boolean, time: string, content: string, unix : number }) => {
           if (!data.isMe) {
             this.database.db.executeSql('insert into message(time, content, isMe) values(' + data.sentAt + ', "' + data.content + '", 0)', {}).then(() => {
               console.log("received messaged saved to local");
@@ -40,8 +39,7 @@ export class MessageProvider {
             });
           }
 
-          let dt = this.timeService.getDateTime(data.sentAt * 1000);
-          data.time = dt.time + " " + dt.am_pm;
+          data.unix = data.sentAt;
           this.messages.push(data);
         });
 
@@ -49,11 +47,10 @@ export class MessageProvider {
           let c = 0;
           let d = data.messages.length;
           let temp = [];
-          for (let i of data.messages) {
-            let dt = this.timeService.getDateTime(i.sentAt * 1000);
-            i.time = dt.time + " " + dt.am_pm;
-            if (this.maxRemoteUnix < i.sentAt) this.maxRemoteUnix = i.sentAt;
-            temp.push(i);
+          for (let msg of data.messages) {
+            msg.unix = msg.sentAt;
+            if (this.maxRemoteUnix < msg.sentAt) this.maxRemoteUnix = msg.sentAt;
+            temp.unshift(msg);
             if (++c == d) {
               this.messages = temp;
               this.database._dbready.subscribe((ready) => {
@@ -162,13 +159,11 @@ export class MessageProvider {
             if (data.rows.length > 0) {
               let c = 0;
               for (let i = 0; i < data.rows.length; i++) {
-                let dt = this.timeService.getDateTime(data.rows.item(i).time * 1000);
                 temp.push({
-                  "id": data.rows.item(i).messageId,
-                  "time": dt.time + " " + dt.am_pm,
-                  "date": dt.date,
-                  "content": data.rows.item(i).content,
-                  "isMe": data.rows.item(i).isMe
+                  id: data.rows.item(i).messageId,
+                  unix: data.rows.item(i).time,
+                  content: data.rows.item(i).content,
+                  isMe: data.rows.item(i).isMe
                 });
                 if (++c == data.rows.length) this.messages = temp;
               }

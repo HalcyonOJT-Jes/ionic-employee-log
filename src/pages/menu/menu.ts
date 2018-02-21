@@ -112,10 +112,8 @@ export class MenuPage {
         } else {
           this.sendLoading.dismiss().then(() => {
             this.alert.setSubTitle('Log saved to local.').present();
-            let dt = this.timeService.getDateTime(t * 1000);
             let nm = {
-              time: dt.time + " " + dt.am_pm,
-              date: dt.date,
+              unix: this.timeService.curUnix,
               map: {
                 formattedAddress: this.locationService.location
               },
