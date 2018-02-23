@@ -58,36 +58,28 @@ export class AuthProvider {
   }
 
   checkExistingToken(b) {
-    return new Promise((resolve, reject) => {
-      this.storage.get('token').then(token => {
-        if (typeof token === "string") {
-          //skip token validation if false; continue otherwise;
-          if (!b) {
-            return this.storage.get('userId').then(userId => {
-              console.log('userId: ', userId);
-              if (typeof userId === "string") {
-                this.accountService.accountId = userId;
-                return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {}).then(data => {
-                  if (data.rows.length > 0) {
-                    this.accountService.accountIntId = data.rows.item(0).id;
-                    this.accountService.accountPic = data.rows.item(0).pic;
-                    resolve(true); return;
-                  } else {
-                    console.log("yay");
-                    resolve(false); return;
-                  }
-                }).catch(e => console.log(e))
-              }
-            })
-          }
-
+    return this.storage.get('token').then(token => {
+      if (typeof token === 'string') {
+        //skip token validation if false; continue otherwise;
+        if (!b) {
+          return this.storage.get('userId');
+        }else{
           this.validateToken(token).then(valid => {
-            if (valid) resolve(true); else resolve(false);
+            if (valid) return true; else return false;
           });
-        } else resolve(false);
-      }).catch(e => {
-        console.log(e);
-      })
+        }
+      }
+    }).then(userId => {
+      if (typeof userId === "string") {
+        this.accountService.accountId = userId;
+        return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {});
+      }
+    }).then(data => {
+      if (data.rows.length > 0) {
+        this.accountService.accountIntId = data.rows.item(0).id;
+        this.accountService.accountPic = data.rows.item(0).pic;
+        return true;
+      } else return false;
     });
   }
 
@@ -123,7 +115,7 @@ export class AuthProvider {
                 console.log("Account saved.");
                 resolve(true);
               });
-          }else resolve(true)
+          } else resolve(true)
         });
       }, err => {
         resolve(false);

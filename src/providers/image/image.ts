@@ -1,22 +1,49 @@
+import { Storage } from '@ionic/storage';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { File } from '@ionic-native/file';
 import { Base64 } from '@ionic-native/base64';
 
-/*
-  Generated class for the ImageProvider provider.
-
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
 @Injectable()
 export class ImageProvider {
+
   constructor(
-    public http: HttpClient,
-    public file: File,
-    private base64: Base64
+    public http     : HttpClient,
+    public file     : File,
+    private base64  : Base64,
+    private storage : Storage
   ) {
     console.log('Hello ImageProvider Provider');
+  }
+
+  //check if admin image is updatable
+  adminImageIsUpdated (newImageUrl) {
+    this.storage.get('admin-image').then(fileUrl => {
+      return this.extractPathAndFile(fileUrl);
+    }).then(data => {
+      this.imageExists(data.path, data.file)
+      //exists
+      .then(() => {
+        if(newImageUrl == data.file) return true;
+        return false;
+      })
+      //does not exists
+      .catch(() => {
+        return this.saveAdminImage(newImageUrl);
+      }).catch(e => console.log(e));;
+    })
+  }
+
+  //admin image
+  saveAdminImage(url) {
+    this.onlineUrlToB64(url).then((b64:string) => {
+      let file = this.extractPathAndFile(url).file;
+      return this.saveBase64(b64, file);
+    }).then(fileUrl => {
+      return this.storage.set('admin-image', fileUrl);
+    }).then(() => {
+      console.log('admin image saved.');
+    });
   }
 
   //for online image
@@ -49,7 +76,6 @@ export class ImageProvider {
   //requires clean b64 data (no mime type)
   b64toBlob(b64Data, contentType) {
     return new Promise((resolve, reject) => {
-      contentType = contentType || '';
       let sliceSize = 512;
       let realData = b64Data.split(';')[1].split(',')[1];
 
@@ -86,7 +112,8 @@ export class ImageProvider {
       })
     }).catch(e => console.log(e))
   }
-
+  
+  //for local
   extractPathAndFile(dir) {
     let a = dir.lastIndexOf('/');
     let file = dir.substring(a + 1, dir.length).replace('%20', ' ');
