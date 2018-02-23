@@ -17,29 +17,29 @@ export class MessageProvider {
   maxRemoteUnix: number = 0;
   messageSubscription: any;
   constructor(
-    private employees     : EmployeesProvider,
-    public http           : HttpClient,
-    private timeService   : TimeProvider,
-    private database      : DatabaseProvider,
-    public localNotif     : LocalNotifications,
-    private platform      : Platform,
-    private auth          : AuthProvider,
-    private socketService : SocketProvider,
-    public accountService : AccountProvider
+    private employees: EmployeesProvider,
+    public http: HttpClient,
+    private timeService: TimeProvider,
+    private database: DatabaseProvider,
+    public localNotif: LocalNotifications,
+    private platform: Platform,
+    private auth: AuthProvider,
+    private socketService: SocketProvider,
+    public accountService: AccountProvider
   ) {
     this.auth.isAuth.subscribe(x => {
       if (x) {
-        this.messageSubscription = this.getMessage().subscribe((data: { _id: string, sentAt: number, isMe: boolean, time: string, content: string, unix : number, seenAt : number }) => {
+        this.messageSubscription = this.getMessage().subscribe((data: { _id: string, sentAt: number, isMe: boolean, time: string, content: string, unix: number, seenAt: number }) => {
           console.log(data);
           if (!data.isMe) {
-            this.database.db.executeSql('insert into message(time, _id, content, isMe, seenAt) values(' + data.sentAt + ',"'+ data._id +'", "' + data.content + '", 0, '+ data.seenAt +')', {}).then(() => {
+            this.database.db.executeSql('insert into message(time, _id, content, isMe, seenAt) values(' + data.sentAt + ',"' + data._id + '", "' + data.content + '", 0, ' + data.seenAt + ')', {}).then(() => {
               console.log("received messaged saved to local");
               this.triggerLocalNotif(data);
             }).catch(e => {
               console.log("failed to save received message");
             });
-          }else{
-            this.database.db.executeSql('update message set _id = "'+ data._id +'" where content="'+ data.content +'"').then(() => {
+          } else {
+            this.database.db.executeSql('update message set _id = "' + data._id + '" where content="' + data.content + '"').then(() => {
               console.log("local message updated : id set");
             });
           }
@@ -56,10 +56,12 @@ export class MessageProvider {
             msg.unix = msg.sentAt;
             if (this.maxRemoteUnix < msg.sentAt) this.maxRemoteUnix = msg.sentAt;
             temp.unshift(msg);
+            console.log(c + " = " + d);
             if (++c == d) {
               this.messages = temp;
               this.database._dbready.subscribe((ready) => {
                 if (ready) {
+                  console.log("db ready yay");
                   this.syncMessages(this.maxRemoteUnix, data.messages);
                 }
               });
@@ -80,20 +82,24 @@ export class MessageProvider {
   }
 
   getLocalMaxUnix() {
-    return new Promise((resolve, reject) => {
-      this.database.db.executeSql('select time from message inner join user on message.userId = user.id where user.userId = "' + this.accountService.accountId + '" order by time desc limit 1', {}).then((data) => {
-        if (data.rows.length > 0) {
-          resolve(data.rows.item(0).time);
-        }
-      }).catch(e => {
-        reject(e);
-      })
+    return this.database.db.executeSql('select time from message inner join user on message.userId = user.id where user.userId = ? order by time desc limit 1', [this.accountService.accountId]).then((data) => {
+      if (data.rows.length > 0) {
+        return data.rows.item(0).time;
+      }else{
+        return 0;
+      }
     });
   }
 
   getImportables(unix, messages) {
     return new Promise((resolve, reject) => {
       messages = messages.reverse();
+      
+      if(unix == 0){
+        resolve(messages);
+        return;
+      }
+
       console.log(messages);
       messages.find((message, i) => {
         console.log(message.sentAt + " == " + unix);
@@ -109,29 +115,30 @@ export class MessageProvider {
   }
 
   syncMessages(remoteUnix, remoteMessages) {
+    console.log("sync message start");
     return new Promise(resolve => {
       this.platform.ready().then(() => {
         //import
         //get local unix
         this.getLocalMaxUnix().then((localMaxUnix) => {
           console.log("received max local unix : " + localMaxUnix);
-          this.getImportables(localMaxUnix, remoteMessages).then((importables: Array<{ _id : string, isMe: boolean, sentAt: number, content: string, seenAt : number }>) => {
+          this.getImportables(localMaxUnix, remoteMessages).then((importables: Array<{ _id: string, isMe: boolean, sentAt: number, content: string, seenAt: number }>) => {
             if (importables.length > 0) {
               console.log("found new messages; importing;");
               for (let msg of importables) {
                 let isMe = msg.isMe == true ? 1 : 0;
-                this.database.getUserIntId(this.accountService.accountId).then((userId : number) => {
-                  this.database.db.executeSql('insert into message(time, _id, userId, content, isMe, seenAt) values(' + msg.sentAt + ', "'+ msg._id +'", '+ userId +' , "' + msg.content + '", ' + isMe + ', '+ msg.seenAt +')', {}).then(() => {
+                this.database.getUserIntId(this.accountService.accountId).then((userId: number) => {
+                  this.database.db.executeSql('insert into message(time, _id, userId, content, isMe, seenAt) values(' + msg.sentAt + ', "' + msg._id + '", ' + userId + ' , "' + msg.content + '", ' + isMe + ', ' + msg.seenAt + ')', {}).then(() => {
                     console.log("message imported : " + msg.content);
                   }).catch(e => console.log(e));
                 }).catch(e => console.log(e));
               }
             } else console.log("messages updated; skipping import;");
           });
-        });
+        }).catch(e => console.log(e));
 
         //export
-        this.database.db.executeSql('select * from message inner join user on message.userId = user.id where time > ' + remoteUnix + ' and user.userId = "' + this.accountService.accountId + '"' , {}).then((data) => {
+        this.database.db.executeSql('select * from message inner join user on message.userId = user.id where time > ' + remoteUnix + ' and user.userId = "' + this.accountService.accountId + '"', {}).then((data) => {
           if (data.rows.length > 0) {
             console.log("found unsent messages; exporting..");
             for (let i = 0; i < data.rows.length; i++) {

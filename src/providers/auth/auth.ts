@@ -70,9 +70,7 @@ export class AuthProvider {
                 return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {}).then(data => {
                   if (data.rows.length > 0) {
                     this.accountService.accountIntId = data.rows.item(0).id;
-                    this.accountService.accountIntId = data.rows.item(0).pic;
-                    this.accountService.accountIntId = data.rows.item(0).userId;
-                    
+                    this.accountService.accountPic = data.rows.item(0).pic;
                     resolve(true); return;
                   } else {
                     console.log("yay");
