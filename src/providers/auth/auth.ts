@@ -62,25 +62,25 @@ export class AuthProvider {
       if (typeof token === 'string') {
         //skip token validation if false; continue otherwise;
         if (!b) {
-          return this.storage.get('userId');
+          this.storage.get('userId').then(userId => {
+            if (typeof userId === "string") {
+              this.accountService.accountId = userId;
+              return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {});
+            }
+          }).then(data => {
+            if (data.rows.length > 0) {
+              this.accountService.accountIntId = data.rows.item(0).id;
+              this.accountService.accountPic = data.rows.item(0).pic;
+              return true;
+            } else return false;
+          });;
         }else{
           this.validateToken(token).then(valid => {
             if (valid) return true; else return false;
           });
         }
       }
-    }).then(userId => {
-      if (typeof userId === "string") {
-        this.accountService.accountId = userId;
-        return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {});
-      }
-    }).then(data => {
-      if (data.rows.length > 0) {
-        this.accountService.accountIntId = data.rows.item(0).id;
-        this.accountService.accountPic = data.rows.item(0).pic;
-        return true;
-      } else return false;
-    });
+    })
   }
 
   validateToken(token) {
