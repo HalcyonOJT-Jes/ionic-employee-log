@@ -107,6 +107,12 @@ export class ChatPage {
     this.scrollToBottom();
   }
 
+  seen(){
+    this.socketService.socket.emit('cl-seenMessage', {
+      _id : this.messageService.messages[this.messageService.messages.length - 1]._id
+    });
+  }
+
   trackByFn(index, item) {
     return index;
   }

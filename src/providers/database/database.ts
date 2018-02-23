@@ -36,11 +36,11 @@ export class DatabaseProvider {
         //   console.log(e);
         // });
 
-        // db.executeSql('drop table message', {}).then(() => {
-        //   console.log("Dropped table : message");
-        // }).catch(e => {
-        //   console.log(e);
-        // });
+        db.executeSql('drop table message', {}).then(() => {
+          console.log("Dropped table : message");
+        }).catch(e => {
+          console.log(e);
+        });
 
         // db.executeSql('drop table user', {}).then(() => {
         //   console.log("Dropped table : user");
@@ -79,12 +79,14 @@ export class DatabaseProvider {
         /*
           message
           *-messageId
+          --_id
           --userId
           --time
           --content
           --isMe
+          --seenAt
         */
-        db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, time INTEGER, content varchar(255), isMe INTEGER, FOREIGN KEY(userId) REFERENCES user(id))', {}).then(() => {
+        db.executeSql('create table if not exists message(messageId INTEGER PRIMARY KEY AUTOINCREMENT, _id varchar(255), userId INTEGER, time INTEGER, content varchar(255), isMe INTEGER, seenAt INTEGER, FOREIGN KEY(userId) REFERENCES user(id))', {}).then(() => {
           console.log('Created message table')
         }).catch(e => {
           console.log(e);

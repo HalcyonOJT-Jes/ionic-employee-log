@@ -49,7 +49,7 @@
     <ion-row class="message_row">
       <ion-col col-9>
         <ion-item no-lines>
-          <ion-input type="text" placeholder="Message" [(ngModel)]="message" (ngModelChange)="userTyping()">
+          <ion-input type="text" placeholder="Message" [(ngModel)]="message" (ionFocus)="seen()" (ngModelChange)="userTyping()">
 
           </ion-input>
         </ion-item>

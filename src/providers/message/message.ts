@@ -29,13 +29,18 @@ export class MessageProvider {
   ) {
     this.auth.isAuth.subscribe(x => {
       if (x) {
-        this.messageSubscription = this.getMessage().subscribe((data: { sentAt: number, isMe: boolean, time: string, content: string, unix : number }) => {
+        this.messageSubscription = this.getMessage().subscribe((data: { _id: string, sentAt: number, isMe: boolean, time: string, content: string, unix : number, seenAt : number }) => {
+          console.log(data);
           if (!data.isMe) {
-            this.database.db.executeSql('insert into message(time, content, isMe) values(' + data.sentAt + ', "' + data.content + '", 0)', {}).then(() => {
+            this.database.db.executeSql('insert into message(time, _id, content, isMe, seenAt) values(' + data.sentAt + ',"'+ data._id +'", "' + data.content + '", 0, '+ data.seenAt +')', {}).then(() => {
               console.log("received messaged saved to local");
               this.triggerLocalNotif(data);
             }).catch(e => {
               console.log("failed to save received message");
+            });
+          }else{
+            this.database.db.executeSql('update message set _id = "'+ data._id +'" where content="'+ data.content +'"').then(() => {
+              console.log("local message updated : id set");
             });
           }
 
@@ -110,14 +115,13 @@ export class MessageProvider {
         //get local unix
         this.getLocalMaxUnix().then((localMaxUnix) => {
           console.log("received max local unix : " + localMaxUnix);
-          this.getImportables(localMaxUnix, remoteMessages).then((importables: Array<{ isMe: boolean, sentAt: number, content: string }>) => {
+          this.getImportables(localMaxUnix, remoteMessages).then((importables: Array<{ _id : string, isMe: boolean, sentAt: number, content: string, seenAt : number }>) => {
             if (importables.length > 0) {
               console.log("found new messages; importing;");
               for (let msg of importables) {
                 let isMe = msg.isMe == true ? 1 : 0;
-                console.log(msg.sentAt);
                 this.database.getUserIntId(this.accountService.accountId).then((userId : number) => {
-                  this.database.db.executeSql('insert into message(time, userId, content, isMe) values(' + msg.sentAt + ', '+ userId +' , "' + msg.content + '", ' + isMe + ')', {}).then(() => {
+                  this.database.db.executeSql('insert into message(time, _id, userId, content, isMe, seenAt) values(' + msg.sentAt + ', "'+ msg._id +'", '+ userId +' , "' + msg.content + '", ' + isMe + ', '+ msg.seenAt +')', {}).then(() => {
                     console.log("message imported : " + msg.content);
                   }).catch(e => console.log(e));
                 }).catch(e => console.log(e));
