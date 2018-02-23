@@ -75,7 +75,7 @@ export class MenuPage {
     if (this.connectionService.connection) this.sendLoading.present();
     else this.sendLoading.setContent("Can't connect to server. Saving to local.").present();
 
-    let t = Math.floor(Date.now() / 1000);
+    let t = this.timeService.curUnix;
     this.logService.saveLog(
       t,
       this.locationService.lat,
@@ -86,7 +86,7 @@ export class MenuPage {
       return this.saveLogImages(logId);
     }).then(() => {
       let images = this.database.photos.map((photo) => {
-        return Promise.resolve("data:image/jpeg;base64," + photo.base64Data);
+        return Promise.resolve(photo.base64Data);
       });
 
       Promise.all(images).then((imgs) => {
@@ -106,10 +106,15 @@ export class MenuPage {
             msg: this.message,
             scanResult: this.scanResult
           }, (data) => {
-            this.sendLoading.dismiss().then(() => {
-              this.alert.present();
+            this.database.photos.forEach(photo => {
+              let data = this.imageService.extractPathAndFile(photo.normalizedURL);
+              this.file.removeFile(data.path, data.file).then(() => {
+                return this.sendLoading.dismiss()
+              }).then(() => {
+                this.alert.present();
+                this.logService.logEntry(data);
+              });
             });
-            this.logService.logEntry(data);
           });
         } else {
           this.sendLoading.dismiss().then(() => {
@@ -133,7 +138,8 @@ export class MenuPage {
       //create array of promises
       console.log(this.database.photos);
       let promise_array = this.database.photos.map((photo) => {
-        return this.imageService.saveBase64(photo.base64Data, photo.fileEntry.name.replace(/.jpeg|.png|.gif/gi, '')).then((filename) => {;
+        return this.imageService.saveBase64(photo.base64Data, photo.fileEntry.name.replace(/.jpeg|.png|.gif/gi, '')).then((filename) => {
+          ;
           return this.database.db.executeSql('insert into log_images(logId, file) values(' + logId + ', "' + filename + '")', {}).then(() => {
           }).catch(e => console.log(e));
         }).catch(e => console.log(e));
@@ -159,12 +165,6 @@ export class MenuPage {
     this.navCtrl.setRoot('HomePage');
   }
 
-  retry() {
-    this.database.photos = [];
-    this.scanResult = undefined;
-    this.openCamera();
-  }
-
   openCamera() {
     this.camera.getPicture().then((pictures: Array<Picture>) => {
       this.database.photos = pictures;
@@ -174,5 +174,9 @@ export class MenuPage {
     }).catch(e => {
       console.log(e);
     });
+  }
+
+  ionViewDidLeave() {
+    this.scanResult = undefined;
   }
 }

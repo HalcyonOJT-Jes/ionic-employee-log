@@ -47,5 +47,4 @@ export class AccountProvider {
       }).catch(e => console.log(e));
     });
   }
-  
 }

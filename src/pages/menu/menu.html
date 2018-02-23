@@ -14,25 +14,15 @@
       <ion-slide *ngFor="let photo of database.photos">
         <div class="frame">
           <span class="helper"></span>
-          <img [src]="'data:image/jpeg;base64,' + photo.base64Data | safeResource">
+          <img [src]="photo.base64Data | safeResource">
         </div>
       </ion-slide>
     </ion-slides>
 
     <ion-fab right top>
-      <button ion-fab>
-        <ion-icon name="menu"></ion-icon>
+      <button ion-fab (click)="closeMenu()" id="closeMenu">
+        <ion-icon name="trash"></ion-icon>
       </button>
-      <ion-fab-list side="bottom">
-        <button ion-fab (click)="closeMenu()" id="closeMenu">
-          <ion-icon name="trash"></ion-icon>
-        </button>
-      </ion-fab-list>
-      <ion-fab-list side="left">
-        <button ion-fab (click)="retry()" id="retry">
-          <ion-icon name="refresh"></ion-icon>
-        </button>
-      </ion-fab-list>
     </ion-fab>
 
     <ion-item *ngIf="locationService.location">

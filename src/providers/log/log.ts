@@ -133,6 +133,7 @@ export class LogProvider {
     this.platform.ready().then(() => {
       this.database._dbready.subscribe((ready) => {
         if (ready) {
+          console.log("user id ", this.accountService.accountId);
           this.database.db.executeSql('select timeIn, formattedAddress, isSeen from log inner join user on log.userId = user.id where user.userId = "' + this.accountService.accountId + '" order by timeIn DESC', {}).then((data) => {
             let temp = [];
             if (data.rows.length > 0) {
@@ -147,7 +148,7 @@ export class LogProvider {
                 });
                 if (++c == data.rows.length) this.local_log = temp;
               }
-            }
+            }else console.log("log empty");
           }).catch(e => {
             console.log(e);
           });
@@ -223,7 +224,8 @@ export class LogProvider {
                   let d = 0;
                   let b64s = [];
                   for (let i = 0; i < data2.rows.length; i++) {
-                    this.imageService.urlToB64(data2.rows.item(i).file, false).then(b64 => {
+                    let data = this.imageService.extractPathAndFile(data2.rows.item(i).file);
+                    this.imageService.urlToB64(data.path, data.file).then(b64 => {
                       b64s.push(b64);
                       if (++d == data2.rows.length) resolve(b64s);
                     }).catch(e => console.log(e));

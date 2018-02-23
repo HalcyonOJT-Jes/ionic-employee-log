@@ -105,11 +105,10 @@ export class AuthProvider {
         this.accountService.accountExists(data._id).then(exists => {
           console.log(data);
           if (!exists) {
-            this.imageService.onlineUrlToB64(data.pic.thumb, true)
+            this.imageService.onlineUrlToB64(data.pic.thumb)
               .then((b64: string) => {
                 let name = data.pic.thumb.split('/');
                 name = name[name.length - 1].split('.')[0];
-                console.log('name: ', name);
                 return this.imageService.saveBase64(b64, name);
               })
               .catch(e => console.log(e))

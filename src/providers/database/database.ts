@@ -36,11 +36,11 @@ export class DatabaseProvider {
         //   console.log(e);
         // });
 
-        db.executeSql('drop table message', {}).then(() => {
-          console.log("Dropped table : message");
-        }).catch(e => {
-          console.log(e);
-        });
+        // db.executeSql('drop table message', {}).then(() => {
+        //   console.log("Dropped table : message");
+        // }).catch(e => {
+        //   console.log(e);
+        // });
 
         // db.executeSql('drop table user', {}).then(() => {
         //   console.log("Dropped table : user");
@@ -75,6 +75,11 @@ export class DatabaseProvider {
           console.log(e);
         });
 
+        db.executeSql('select * from log', {}).then(data => {
+          for(let i = 0; i < data.rows.length; i++){
+            console.log(data.rows.item(i).userId);
+          }
+        });
         /* message table creation */
         /*
           message
@@ -116,6 +121,12 @@ export class DatabaseProvider {
         db.executeSql('create table if not exists user(id INTEGER PRIMARY KEY AUTOINCREMENT, userId varchar(255) , pic varchar(255))', {}).then(() => {
           console.log("Created user table.");
         }).catch(e => console.log(e));
+
+        db.executeSql('select * from user', {}).then(data => {
+          for(let i = 0; i < data.rows.length; i++){
+            console.log('id ', data.rows.item(i).id, ' userId ' , data.rows.item(i).userId);
+          }
+        });
         //////////////////////
         //custom sqls 
         

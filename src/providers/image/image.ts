@@ -20,41 +20,30 @@ export class ImageProvider {
   }
 
   //for online image
-  onlineUrlToB64(url, clean){
-    return new Promise( (resolve, reject) => {
+  onlineUrlToB64(url) {
+    return new Promise((resolve, reject) => {
       let img = new Image();
       img.crossOrigin = 'Anonymous';
-      img.onload = function(){
-        let canvas = <HTMLCanvasElement> document.createElement('CANVAS'),
-        ctx = canvas.getContext('2d'),
-        dataURL;
+      img.onload = function () {
+        let canvas = <HTMLCanvasElement>document.createElement('CANVAS'),
+          ctx = canvas.getContext('2d'),
+          dataURL;
         canvas.height = img.height;
         canvas.width = img.width;
         ctx.drawImage(img, 0, 0);
 
         dataURL = canvas.toDataURL('jpeg');
         canvas = null;
-        if(clean){
-          resolve(dataURL.split(';')[1].split(',')[1]);
-        }else resolve(dataURL);
+        resolve(dataURL);
       };
       img.src = url;
     });
   }
 
   //for local image(blob/data uri)
-  //  @clean set true for clean b64 (no mime type)
-  urlToB64(url, clean) {
-    console.log('url: ', url);
-    return this.base64.encodeFile(url).then((b64File: string) => {
-      let b = b64File.split(';');
-      let b64 = '';
-      
-      if(clean)  b64 = b[2].split(",")[1];
-      else b64 = 'data:image/jpeg;base64,' + b[2].split(",")[1];
-      
-      return b64;
-    }).catch(e => console.log(e))
+  urlToB64(path, file) {
+    //returns b64 string
+    return this.file.readAsDataURL(path, file);
   }
 
   //requires clean b64 data (no mime type)
@@ -62,8 +51,9 @@ export class ImageProvider {
     return new Promise((resolve, reject) => {
       contentType = contentType || '';
       let sliceSize = 512;
+      let realData = b64Data.split(';')[1].split(',')[1];
 
-      let byteCharacters = atob(b64Data);
+      let byteCharacters = atob(realData);
       let byteArrays = [];
 
       for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
@@ -81,16 +71,33 @@ export class ImageProvider {
   }
 
   saveBase64(base64: string, name: string) {
-      let pictureDir = this.file.externalDataDirectory;
-
-      return this.b64toBlob(base64, 'image/jpeg').then((blob: any) => {
-        return this.file.writeFile(pictureDir, name + ".jpeg", blob).then(() => {
-          return pictureDir + name + ".jpeg";
+    let pictureDir = this.file.externalDataDirectory;
+    let fileName = name + ".jpeg";
+    let fullDir = pictureDir + fileName;
+    return this.b64toBlob(base64, 'image/jpeg').then((blob: any) => {
+      return this.imageExists(pictureDir, fileName).then(() => {
+        return fullDir;
+      }).catch(() => {
+        return this.file.writeFile(pictureDir, fileName, blob).then(() => {
+          return fullDir;
         }).catch(e => {
-          console.log('e: ', e);
+          return fullDir;
         })
-      }).catch(e => {
-        console.log(e);
-      });
+      })
+    }).catch(e => console.log(e))
+  }
+
+  extractPathAndFile(dir) {
+    let a = dir.lastIndexOf('/');
+    let file = dir.substring(a + 1, dir.length).replace('%20', ' ');
+    let path = dir.substring(0, a);
+    return {
+      file: file,
+      path: path
+    }
+  }
+
+  imageExists(dir, file) {
+    return this.file.checkDir(dir, file);
   }
 }

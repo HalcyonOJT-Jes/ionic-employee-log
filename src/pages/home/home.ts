@@ -66,7 +66,9 @@ export class HomePage {
                     let c = 0;
 
                     for (let i = 0; i < results.length; i++) {
-                      this.imageService.urlToB64(results[i], true).then(b64 => {
+                      let data = this.imageService.extractPathAndFile(results[i]);
+                      
+                      this.imageService.urlToB64(data.path, data.file).then(b64 => {
                         let name = results[i].split('/');
                         name = name[name.length - 1];
                         temp.push({
@@ -93,7 +95,12 @@ export class HomePage {
           handler: () => {
             this.camera.getPicture().then((pictures: Array<Picture>) => {
               this.openMapLoading.present().then(() => {
-                this.database.photos = pictures;
+                let temp = [];
+                pictures.forEach(photo => {
+                    photo.base64Data = 'data:image/jpeg;base64,' + photo.base64Data;
+                    temp.push(photo);
+                });
+                this.database.photos = temp;
                 this.navCtrl.push('MapViewPage');
               })
             }).catch(e => {
