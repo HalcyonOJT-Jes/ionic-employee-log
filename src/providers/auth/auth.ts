@@ -5,7 +5,6 @@ import { Injectable, Inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Storage } from '@ionic/storage';
 import { SocketProvider } from '../socket/socket';
-import { ImageProvider } from '../image/image';
 
 @Injectable()
 export class AuthProvider {
@@ -16,8 +15,7 @@ export class AuthProvider {
     public storage: Storage,
     public socketService: SocketProvider,
     public accountService: AccountProvider,
-    public database: DatabaseProvider,
-    public imageService: ImageProvider
+    public database: DatabaseProvider
   ) {
     this.isAuth.subscribe(x => {
       if (x) {
@@ -57,12 +55,12 @@ export class AuthProvider {
     });
   }
 
-  checkExistingToken(b) {
+  checkExistingToken(hasConnection) {
     return this.storage.get('token').then(token => {
       if (typeof token === 'string') {
         //skip token validation if false; continue otherwise;
-        if (!b) {
-          this.storage.get('userId').then(userId => {
+        if (!hasConnection) {
+          return this.storage.get('userId').then(userId => {
             if (typeof userId === "string") {
               this.accountService.accountId = userId;
               return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {});
@@ -73,9 +71,9 @@ export class AuthProvider {
               this.accountService.accountPic = data.rows.item(0).pic;
               return true;
             } else return false;
-          });;
+          });
         }else{
-          this.validateToken(token).then(valid => {
+          return this.validateToken(token).then(valid => {
             if (valid) return true; else return false;
           });
         }
@@ -91,32 +89,25 @@ export class AuthProvider {
           Authorization: 'JWT ' + token,
           'Content-Type': 'applicaton/json'
         })
-      }).subscribe((data: any) => {
+      }).subscribe((data: any) => { 
         this.accountService.accountExists(data._id).then(exists => {
-          console.log(data);
           if (!exists) {
-            this.imageService.onlineUrlToB64(data.pic.thumb)
-              .then((b64: string) => {
-                let name = data.pic.thumb.split('/');
-                name = name[name.length - 1].split('.')[0];
-                return this.imageService.saveBase64(b64, name);
-              })
-              .catch(e => console.log(e))
-              .then((filePath: string) => {
-                console.log("User image saved : " + filePath);
-                return this.accountService.saveUser(data._id, filePath);
-              })
-              .catch(e => console.log(e))
-              .then(() => {
-                return this.storage.set('userId', data._id);
-              })
-              .catch(e => console.log(e))
-              .then(() => {
-                console.log("Account saved.");
-                resolve(true);
-              });
+            this.accountService.saveUserImage(data.pic.thumb)
+            .then((filePath: string) => {
+              console.log("User image saved : " + filePath);
+              return this.accountService.saveUser(data._id, filePath);
+            })
+            .catch(e => console.log(e))
+            .then(() => {
+              return this.storage.set('userId', data._id);
+            })
+            .catch(e => console.log(e))
+            .then(() => {
+              console.log("Account saved.");
+              resolve(true)
+            });
           } else resolve(true)
-        });
+        }).catch(e => console.log(e));
       }, err => {
         resolve(false);
       });
