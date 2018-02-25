@@ -106,15 +106,17 @@ export class MenuPage {
             msg: this.message,
             scanResult: this.scanResult
           }, (data) => {
-            this.database.photos.forEach(photo => {
+            let promises = this.database.photos.map((photo) => {
               let data = this.imageService.extractPathAndFile(photo.normalizedURL);
-              this.file.removeFile(data.path, data.file).then(() => {
-                return this.sendLoading.dismiss()
-              }).then(() => {
+              return this.file.removeFile(data.path, data.file);
+            });
+            
+            Promise.all(promises).then(() => {
+              this.sendLoading.dismiss().then(() => {
                 this.alert.present();
                 this.logService.logEntry(data);
               });
-            });
+            }).catch(e => console.log(e));
           });
         } else {
           this.sendLoading.dismiss().then(() => {
