@@ -21,15 +21,6 @@ export class LogProvider {
   unixMax: any;
   exportCounter: number = 0;
   exportMax: number;
-  syncStart = this.toast.create({
-    message: 'Syncing logs.',
-    duration: 3000
-  });
-
-  syncEnd = this.toast.create({
-    message: 'Log sync complete.',
-    duration: 3000
-  })
 
   constructor(
     public http: HttpClient,
@@ -217,6 +208,7 @@ export class LogProvider {
         if (data.rows.length > 0) {
           console.log('Exportable found : ', data.rows.length);
           let c = 0;
+          ////////////wrong loop. assign to promise then execute promise.all
           for (let i = 0; i < data.rows.length; i++) {
             this.database.db.executeSql('select file from log_images where logId = ' + data.rows.item(i).id, {}).then(data2 => {
               return new Promise((resolve, reject) => {
@@ -249,18 +241,11 @@ export class LogProvider {
                 batteryStatus: data.rows.item(i).batteryStatus
               }, (respData) => {
                 this.logEntry(respData);
-                if (++c == data.rows.length) {
-                  this.syncEnd.present();
-                  return;
-                }
+                if (++c == data.rows.length) return;
               });
             });
           }
-        } else {
-          console.log("No exportable found.");
-          this.syncEnd.present();
-          return;
-        }
+        } else return;
       });
   }
 
@@ -270,7 +255,6 @@ export class LogProvider {
         resolve();
         return;
       }
-      this.syncStart.present();
       this.import(remoteLogs).then(() => {
         this.export(maxUnix).then(() => {
           console.log("export -> then");
