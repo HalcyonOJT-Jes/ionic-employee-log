@@ -80,9 +80,7 @@ export class ChatPage {
     this.messageService.saveMessage(unix, nm).then(() => {
       console.log("Messaged saved to local");
       if (this.connectionService.connection) {
-        this.socketService.socket.emit('cl-sendNewMessage', nm, (res) => {
-          console.log(res);
-        });
+        this.socketService.socket.emit('cl-sendNewMessage', nm);
         console.log("message sent to server");
       } else {
         this.messageService.messages.push(nm2);
@@ -92,12 +90,15 @@ export class ChatPage {
           position: 'top'
         }).present();
       }
-    }).catch(e => {
-      console.log(e);
-    }).then(() => {
+      return true;
+    })
+    .catch(e => console.log(e))
+    .then(a => {
+      console.log('a: ', a);
       this.message = '';
       this.scrollToBottom();
-    });
+    })
+    .catch(e => console.log(e));
   }
 
   ionViewDidLoad() {

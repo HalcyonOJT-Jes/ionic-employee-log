@@ -41,7 +41,7 @@ export class MessageProvider {
           } else {
             this.database.db.executeSql('update message set _id = "' + data._id + '" where content="' + data.content + '"').then(() => {
               console.log("local message updated : id set");
-            });
+            }).catch(e => console.log(e));
           }
 
           data.unix = data.sentAt;

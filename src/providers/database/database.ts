@@ -75,11 +75,6 @@ export class DatabaseProvider {
           console.log(e);
         });
 
-        db.executeSql('select * from log', {}).then(data => {
-          for(let i = 0; i < data.rows.length; i++){
-            console.log(data.rows.item(i).userId);
-          }
-        });
         /* message table creation */
         /*
           message
