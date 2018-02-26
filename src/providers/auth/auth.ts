@@ -77,7 +77,7 @@ export class AuthProvider {
             if (valid) return true; else return false;
           });
         }
-      }
+      }else return false;
     })
   }
 
