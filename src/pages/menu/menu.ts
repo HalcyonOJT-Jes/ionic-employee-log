@@ -114,7 +114,7 @@ export class MenuPage {
             Promise.all(promises).then(() => {
               this.sendLoading.dismiss().then(() => {
                 this.alert.present();
-                this.logService.logEntry(data);
+                return this.logService.logEntry(data);
               });
             }).catch(e => console.log(e));
           });
@@ -122,7 +122,7 @@ export class MenuPage {
           this.sendLoading.dismiss().then(() => {
             this.alert.setSubTitle('Log saved to local.').present();
             let nm = {
-              unix: this.timeService.curUnix,
+              unix: t,
               map: {
                 formattedAddress: this.locationService.location
               },

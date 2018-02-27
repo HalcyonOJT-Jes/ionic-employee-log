@@ -11,6 +11,7 @@ import * as io from 'socket.io-client';
 export class SocketProvider {
   public io = io;
   serverAddress: string = 'http://192.168.1.73:8080';
+  // serverAddress: string = 'https://socket-io-use.herokuapp.com';
   socket: SocketIOClient.Socket;
   constructor(public http: HttpClient) {
   }

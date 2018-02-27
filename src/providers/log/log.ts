@@ -56,17 +56,17 @@ export class LogProvider {
           this.database._dbready.subscribe((ready) => {
             if (ready) {
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
-                if(logs.length > 0){
+                this.local_log = logs;
+                if (logs.length > 0) {
                   this.findUnixMax().then((maxUnix) => {
-                    this.syncLogs(maxUnix, logs).then(() => {
-                      this.local_log = logs;
-                      
+                    this.syncLogs(maxUnix, logs).then((syncedLogs:any) => {
+                      if(syncedLogs != false) this.local_log = syncedLogs;
                       this.showLogLoader = false;
                       this.showEmptyLog = false;
                       console.log("sync complete");
                     });
                   }).catch(e => console.log(e));
-                }else{
+                } else {
                   this.showLogLoader = false;
                   this.showEmptyLog = true;
                   return;
@@ -139,7 +139,7 @@ export class LogProvider {
                 });
                 if (++c == data.rows.length) this.local_log = temp;
               }
-            }else console.log("log empty");
+            } else console.log("log empty");
           }).catch(e => {
             console.log(e);
           });
@@ -208,44 +208,49 @@ export class LogProvider {
         if (data.rows.length > 0) {
           console.log('Exportable found : ', data.rows.length);
           let c = 0;
-          ////////////wrong loop. assign to promise then execute promise.all
           for (let i = 0; i < data.rows.length; i++) {
-            this.database.db.executeSql('select file from log_images where logId = ' + data.rows.item(i).id, {}).then(data2 => {
+            return this.database.db.executeSql('select file from log_images where logId = ' + data.rows.item(i).id, {}).then(data2 => {
               return new Promise((resolve, reject) => {
                 if (data2.rows.length > 0) {
                   let d = 0;
                   let b64s = [];
                   for (let i = 0; i < data2.rows.length; i++) {
                     let data = this.imageService.extractPathAndFile(data2.rows.item(i).file);
+                    data.file = data.file.replace(' ', '%20');
                     this.imageService.urlToB64(data.path, data.file).then(b64 => {
                       b64s.push(b64);
                       if (++d == data2.rows.length) resolve(b64s);
                     }).catch(e => console.log(e));
                   }
-                }
+                } else resolve();
               })
             }).catch(e => {
               console.log(e);
             }).then(b64s => {
-              console.log("sending local log to server");
-
-              //send log to server
-              this.socketService.socket.emit('cl-timeIn', {
-                employeeId: this.employeeService.currentId,
-                timeIn: data.rows.item(i).timeIn,
-                pics: b64s,
-                map: {
-                  lng: data.rows.item(i).long,
-                  lat: data.rows.item(i).lat
-                },
-                batteryStatus: data.rows.item(i).batteryStatus
-              }, (respData) => {
-                this.logEntry(respData);
-                if (++c == data.rows.length) return;
+              return new Promise((resolve, reject) => {
+                console.log("sending local log to server");
+                if (b64s.length <= 0) {
+                  console.log("no log image;");
+                  return false;
+                }
+                //send log to server
+                this.socketService.socket.emit('cl-timeIn', {
+                  employeeId: this.employeeService.currentId,
+                  timeIn: data.rows.item(i).timeIn,
+                  pics: b64s,
+                  map: {
+                    lng: data.rows.item(i).long,
+                    lat: data.rows.item(i).lat
+                  },
+                  batteryStatus: data.rows.item(i).batteryStatus
+                }, (respData) => {
+                  let logs = this.exportedLogEntry(respData);
+                  if (++c == data.rows.length) resolve(logs);
+                });
               });
             });
           }
-        } else return;
+        } else return false;
       });
   }
 
@@ -255,13 +260,11 @@ export class LogProvider {
         resolve();
         return;
       }
+
       this.import(remoteLogs).then(() => {
-        this.export(maxUnix).then(() => {
-          console.log("export -> then");
-          resolve();
-        }).catch(e => {
-          console.log(e);
-        });
+        return this.export(maxUnix);
+      }).then(logs => {
+        resolve(logs);
       }).catch(e => {
         console.log(e);
       });
@@ -273,30 +276,50 @@ export class LogProvider {
   }
 
   trackLog(index, log) {
-    return index;
+    return log.timeIn;
+  }
+
+  exportedLogEntry (data) {
+    let a = 0;
+    let temp = this.local_log;
+    temp.find((x, i) => {
+      if(x.unix == data.timeIn){
+        a = i;
+        return true;
+      }
+    });
+
+    let log = {
+      _id : data.id,
+      unix : data.timeIn,
+      map : {
+        formattedAddress : data.formattedAddress
+      },
+      isSeen : false
+    }
+
+    temp.splice(a,1, log);
+    console.log("logs updated");
+    return temp;
   }
 
   logEntry(data) {
     if (data.id) {
-      console.log("pushing log to log array");
-      this.local_log = this.local_log.filter(x => {
+      let temp = this.local_log;
+      temp = temp.filter(x => {
         return x.hasOwnProperty('_id');
       });
-      this.pushLog(data.id, data.timeIn, data.formattedAddress);
-    }
-  }
 
-  pushLog(id, t, location) {
-    //push to log array
-    this.local_log.unshift({
-      _id: id,
-      unix: t,
-      map: {
-        formattedAddress: location
-      },
-      isSeen: false
-    });
-    console.log("log pushed");
+      temp.unshift({
+        _id: data.id,
+        unix: data.timeIn,
+        map: {
+          formattedAddress: data.formattedAddress
+        },
+        isSeen: false
+      });
+      return temp;
+    }
   }
 
   saveLog(t, lat, long, loc, batt) {

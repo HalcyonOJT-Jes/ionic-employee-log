@@ -46,38 +46,43 @@ export class HomePage {
 
   browseGallery = () => {
     this.imagePicker.hasReadPermission().then(b => {
-      if (b) {
-        this.imagePicker.getPictures({
-          quality: 80
-        }).then(results => {
-          if (results.length == 0) return;
+      if (b) this.getPicture();
+      else this.imagePicker.requestReadPermission().then(res => {
+        console.log(res);
+      });
+    }, e => console.log(e));
+  }
 
-          this.openMapLoading.present().then(() => {
-            let temp = [];
-            let c = 0;
+  getPicture(){
+    this.imagePicker.getPictures({
+      quality: 80
+    }).then(results => {
+      if (results.length == 0) return;
 
-            for (let i = 0; i < results.length; i++) {
-              let data = this.imageService.extractPathAndFile(results[i]);
-              
-              this.imageService.urlToB64(data.path, data.file).then(b64 => {
-                let name = results[i].split('/');
-                name = name[name.length - 1];
-                temp.push({
-                  fileEntry: {
-                    name: name
-                  },
-                  base64Data: b64,
-                  normalizedURL: results[i]
-                });
-                if (++c == results.length) {
-                  this.database.photos = temp;
-                  this.navCtrl.setRoot('MapViewPage')
-                }
-              }).catch(e => console.log(e));
+      this.openMapLoading.present().then(() => {
+        let temp = [];
+        let c = 0;
+
+        for (let i = 0; i < results.length; i++) {
+          let data = this.imageService.extractPathAndFile(results[i]);
+          
+          this.imageService.urlToB64(data.path, data.file).then(b64 => {
+            let name = results[i].split('/');
+            name = name[name.length - 1];
+            temp.push({
+              fileEntry: {
+                name: name
+              },
+              base64Data: b64,
+              normalizedURL: results[i]
+            });
+            if (++c == results.length) {
+              this.database.photos = temp;
+              this.navCtrl.setRoot('MapViewPage')
             }
-          });
-        }, e => console.log(e));
-      } else this.imagePicker.requestReadPermission();
+          }).catch(e => console.log(e));
+        }
+      });
     }, e => console.log(e));
   }
 
