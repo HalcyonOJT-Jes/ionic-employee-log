@@ -57,6 +57,7 @@ export class AuthProvider {
 
   checkExistingToken(hasConnection) {
     return this.storage.get('token').then(token => {
+      this.token = token;
       if (typeof token === 'string') {
         //skip token validation if false; continue otherwise;
         if (!hasConnection) {
@@ -83,7 +84,6 @@ export class AuthProvider {
 
   validateToken(token) {
     return new Promise((resolve, reject) => {
-      this.token = token;
       this.http.post(this.socketService.serverAddress + '/check-authentication', {}, {
         headers: new HttpHeaders({
           Authorization: 'JWT ' + token,
