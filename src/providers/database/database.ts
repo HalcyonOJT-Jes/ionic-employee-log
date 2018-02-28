@@ -76,6 +76,13 @@ export class DatabaseProvider {
           console.log(e);
         });
 
+        // db.executeSql('select id, logId, userId, pic from log', {}).then(data => {
+        //   console.log("Logs");
+        //   for(let i = 0; i < data.rows.length; i++){
+        //     console.log('id', data.rows.item(i).id, 'pic', data.rows.item(i).pic, 'logId', data.rows.item(i).logId, 'userId', data.rows.item(i).userId);
+        //   }
+        // });
+
         /* message table creation */
         /*
           message
@@ -106,6 +113,13 @@ export class DatabaseProvider {
         }).catch(e => {
           console.log(e);
         })
+
+        // db.executeSql('select liId, logId, file from log_images', {}).then(data => {
+        //   console.log("Log Images");
+        //   for(let i = 0; i < data.rows.length; i++){
+        //     console.log('liId', data.rows.item(i).liId, 'logId', data.rows.item(i).logId, 'file', data.rows.item(i).file);
+        //   }
+        // });
 
         /* user table creation*/
         /**

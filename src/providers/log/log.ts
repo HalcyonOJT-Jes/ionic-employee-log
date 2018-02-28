@@ -152,7 +152,6 @@ export class LogProvider {
   getRemoteLogs(data) {
     return new Promise((resolve, reject) => {
       let temp = [];
-      console.log('data.length: ', data.length);
 
       if (data.length == 0) {
         resolve(temp);
@@ -204,7 +203,6 @@ export class LogProvider {
     return new Promise((resolve, reject) => {
       let updatedLogs = [];
       this.getUnsentLogs().then(exportables => {
-        console.log('exportables: ', exportables);
         if (exportables) {
           this.getLogImages(exportables).then((logs: any) => {
             let c = 0;
@@ -226,12 +224,9 @@ export class LogProvider {
                 });
 
                 Promise.all(promises).then(() => {
-                  console.log(c);
                   let newLogs = this.exportedLogEntry(logs[i], updatedLogs);
                   updatedLogs = newLogs;
-                  console.log('updatedLogs: ', updatedLogs);
                   if (++c == logs.length) {
-                    console.log("all done");
                     resolve(updatedLogs);
                   }
                 }).catch(e => console.log(e));
@@ -245,7 +240,7 @@ export class LogProvider {
 
   getUnsentLogs() {
     let exportables = [];
-    return this.database.db.executeSql('select * from log inner join user on log.userId = user.id where logId is null and user.userId =?', [this.accountService.accountId])
+    return this.database.db.executeSql('select log.id, timeIn, long, lat, formattedAddress, batteryStatus, scanResult from log inner join user on log.userId = user.id where logId is null and user.userId =?', [this.accountService.accountId])
       .then(data => {
         let l = data.rows.length;
         if (l > 0) {
@@ -278,7 +273,7 @@ export class LogProvider {
       for (let i = 0; i < temp.length; i++) {
         let b64s = [];
         let files = [];
-        this.database.db.executeSql('select file from log_images inner join log on log_images.logId = log.id where log.id = ?', [temp[i].id]).then(data => {
+        this.database.db.executeSql('select log_images.logId, file from log_images inner join log on log_images.logId = log.id where log.id = ?', [temp[i].id]).then(data => {
           let l = data.rows.length;
           if (l > 0) {
             let c1 = 0;

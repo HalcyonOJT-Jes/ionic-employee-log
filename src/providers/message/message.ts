@@ -56,12 +56,10 @@ export class MessageProvider {
             msg.unix = msg.sentAt;
             if (this.maxRemoteUnix < msg.sentAt) this.maxRemoteUnix = msg.sentAt;
             temp.unshift(msg);
-            console.log(c + " = " + d);
             if (++c == d) {
               this.messages = temp;
               this.database._dbready.subscribe((ready) => {
                 if (ready) {
-                  console.log("db ready yay");
                   this.syncMessages(this.maxRemoteUnix, data.messages);
                 }
               });
@@ -100,13 +98,9 @@ export class MessageProvider {
         return;
       }
 
-      console.log(messages);
       messages.find((message, i) => {
-        console.log(message.sentAt + " == " + unix);
         if (message.sentAt <= unix) {
-          console.log("found");
           let arr = messages.slice(0, i);
-          console.log(arr);
           resolve(arr);
           return true;
         }
