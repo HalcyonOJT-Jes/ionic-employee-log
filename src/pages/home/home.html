@@ -19,7 +19,7 @@
 <ion-content>
   <ion-grid class="log">
     <ion-row>
-      <ion-col col-10 offset-1 class="empty-message" *ngIf="log.showEmptyLog == true">
+      <ion-col col-10 offset-1 class="empty-message" *ngIf="log.showEmptyLog == true && log.local_log.length == 0">
         Nothing here. :(
       </ion-col>
       <ion-col col-10 offset-1 class="log-loader" *ngIf="log.showLogLoader == true">

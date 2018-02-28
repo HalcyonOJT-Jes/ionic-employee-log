@@ -153,7 +153,7 @@ export class LogProvider {
     return new Promise((resolve, reject) => {
       let temp = [];
       console.log('data.length: ', data.length);
-      
+
       if (data.length == 0) {
         resolve(temp);
         return;
@@ -204,6 +204,7 @@ export class LogProvider {
     return new Promise((resolve, reject) => {
       let updatedLogs = [];
       this.getUnsentLogs().then(exportables => {
+        console.log('exportables: ', exportables);
         if (exportables) {
           this.getLogImages(exportables).then((logs: any) => {
             let c = 0;
@@ -229,7 +230,7 @@ export class LogProvider {
                   let newLogs = this.exportedLogEntry(logs[i], updatedLogs);
                   updatedLogs = newLogs;
                   console.log('updatedLogs: ', updatedLogs);
-                  if (++c == logs.length){
+                  if (++c == logs.length) {
                     console.log("all done");
                     resolve(updatedLogs);
                   }
@@ -237,14 +238,14 @@ export class LogProvider {
               });
             }
           })
-        }else resolve();
+        } else resolve();
       })
     });
   }
 
   getUnsentLogs() {
     let exportables = [];
-    return this.database.db.executeSql('select * from log where logId is null', {})
+    return this.database.db.executeSql('select * from log inner join user on log.userId = user.id where logId is null and user.userId =?', [this.accountService.accountId])
       .then(data => {
         let l = data.rows.length;
         if (l > 0) {
@@ -253,13 +254,13 @@ export class LogProvider {
             let exp = {
               id: data.rows.item(i).id,
               timeIn: data.rows.item(i).timeIn,
-              map : {
-                lng : data.rows.item(i).long,
-                lat : data.rows.item(i).lat,
+              map: {
+                lng: data.rows.item(i).long,
+                lat: data.rows.item(i).lat,
                 formattedAddress: data.rows.item(i).formattedAddress,
               },
-              batteryStatus : data.rows.item(i).batteryStatus,
-              scanResult : data.rows.item(i).scanResult
+              batteryStatus: data.rows.item(i).batteryStatus,
+              scanResult: data.rows.item(i).scanResult
             }
 
             exportables.push(exp);
