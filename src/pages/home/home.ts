@@ -65,6 +65,7 @@ export class HomePage {
 
         for (let i = 0; i < results.length; i++) {
           let data = this.imageService.extractPathAndFile(results[i]);
+          console.log('data: ', data);
           
           this.imageService.urlToB64(data.path, data.file).then(b64 => {
             let name = results[i].split('/');

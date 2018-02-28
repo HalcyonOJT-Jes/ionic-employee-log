@@ -81,7 +81,8 @@ export class MenuPage {
       this.locationService.lat,
       this.locationService.long,
       this.locationService.location,
-      this.batteryService.currBattery
+      this.batteryService.currBattery,
+      this.scanResult
     ).then(logId => {
       return this.saveLogImages(logId);
     }).then(() => {
@@ -114,7 +115,7 @@ export class MenuPage {
             Promise.all(promises).then(() => {
               this.sendLoading.dismiss().then(() => {
                 this.alert.present();
-                return this.logService.logEntry(data);
+                this.logService.logEntry(data);
               });
             }).catch(e => console.log(e));
           });

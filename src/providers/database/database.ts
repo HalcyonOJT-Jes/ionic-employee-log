@@ -67,9 +67,10 @@ export class DatabaseProvider {
           --batteryStatus
           --isSeen
           --pic
+          --scanResult
         */
 
-        db.executeSql('create table if not exists log(id INTEGER PRIMARY KEY AUTOINCREMENT, logId varchar(255), userId INTEGER, timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic INTEGER, FOREIGN KEY(userId) REFERENCES user(id))', {}).then(() => {
+        db.executeSql('create table if not exists log(id INTEGER PRIMARY KEY AUTOINCREMENT, logId varchar(255), userId INTEGER, timeIn INTEGER, month INTEGER, lat double, long double, formattedAddress varchar(255), batteryStatus INTEGER, isSeen INTEGER, pic INTEGER, scanResult varchar(255), FOREIGN KEY(userId) REFERENCES user(id))', {}).then(() => {
           console.log('Created log table')
         }).catch(e => {
           console.log(e);
@@ -116,12 +117,6 @@ export class DatabaseProvider {
         db.executeSql('create table if not exists user(id INTEGER PRIMARY KEY AUTOINCREMENT, userId varchar(255) , pic varchar(255))', {}).then(() => {
           console.log("Created user table.");
         }).catch(e => console.log(e));
-
-        db.executeSql('select * from user', {}).then(data => {
-          for(let i = 0; i < data.rows.length; i++){
-            console.log('id ', data.rows.item(i).id, ' userId ' , data.rows.item(i).userId);
-          }
-        });
         //////////////////////
         //custom sqls 
         

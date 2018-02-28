@@ -10,6 +10,7 @@ import { ToastController } from 'ionic-angular/components/toast/toast-controller
 import { AuthProvider } from './../auth/auth';
 import { SocketProvider } from '../socket/socket';
 import { AccountProvider } from '../account/account';
+import { File } from '@ionic-native/file';
 
 @Injectable()
 export class LogProvider {
@@ -32,7 +33,8 @@ export class LogProvider {
     private auth: AuthProvider,
     private socketService: SocketProvider,
     private imageService: ImageProvider,
-    public accountService: AccountProvider
+    public accountService: AccountProvider,
+    public file: File
   ) {
     console.log("Hello Log Provider");
     this.auth.isAuth.subscribe(x => {
@@ -41,7 +43,6 @@ export class LogProvider {
           let temp_log = this.local_log;
 
           temp_log.find((o, i) => {
-            console.log(o._id + " = " + logId.id);
             if (o._id === logId.id) {
               temp_log[i].isSeen = true;
               this.local_log = temp_log;
@@ -59,8 +60,8 @@ export class LogProvider {
                 this.local_log = logs;
                 if (logs.length > 0) {
                   this.findUnixMax().then((maxUnix) => {
-                    this.syncLogs(maxUnix, logs).then((syncedLogs:any) => {
-                      if(syncedLogs != false) this.local_log = syncedLogs;
+                    this.syncLogs(maxUnix, logs).then((syncedLogs: any) => {
+                      if (syncedLogs != null) this.local_log = syncedLogs;
                       this.showLogLoader = false;
                       this.showEmptyLog = false;
                       console.log("sync complete");
@@ -152,14 +153,13 @@ export class LogProvider {
     return new Promise((resolve, reject) => {
       let temp = [];
       console.log('data.length: ', data.length);
-
+      
       if (data.length == 0) {
         resolve(temp);
         return;
       }
       let c = 0;
       let d = data.length;
-      console.log('remote logs found: ', d);
 
       for (let log of data) {
         log.unix = log.timeIn;
@@ -201,57 +201,106 @@ export class LogProvider {
   }
 
   export(maxUnix) {
-    return this.database.db.executeSql('select timeIn, long, lat, batteryStatus, log.id from log inner join user on log.userId = user.id where timeIn > ' + maxUnix + ' and user.userId = "' + this.accountService.accountId + '"', {})
-      .then((data) => {
-        this.exportMax = data.rows.length;
-
-        if (data.rows.length > 0) {
-          console.log('Exportable found : ', data.rows.length);
-          let c = 0;
-          for (let i = 0; i < data.rows.length; i++) {
-            return this.database.db.executeSql('select file from log_images where logId = ' + data.rows.item(i).id, {}).then(data2 => {
-              return new Promise((resolve, reject) => {
-                if (data2.rows.length > 0) {
-                  let d = 0;
-                  let b64s = [];
-                  for (let i = 0; i < data2.rows.length; i++) {
-                    let data = this.imageService.extractPathAndFile(data2.rows.item(i).file);
-                    data.file = data.file.replace(' ', '%20');
-                    this.imageService.urlToB64(data.path, data.file).then(b64 => {
-                      b64s.push(b64);
-                      if (++d == data2.rows.length) resolve(b64s);
-                    }).catch(e => console.log(e));
-                  }
-                } else resolve();
-              })
-            }).catch(e => {
-              console.log(e);
-            }).then(b64s => {
-              return new Promise((resolve, reject) => {
-                console.log("sending local log to server");
-                if (b64s.length <= 0) {
-                  console.log("no log image;");
-                  return false;
-                }
-                //send log to server
-                this.socketService.socket.emit('cl-timeIn', {
-                  employeeId: this.employeeService.currentId,
-                  timeIn: data.rows.item(i).timeIn,
-                  pics: b64s,
-                  map: {
-                    lng: data.rows.item(i).long,
-                    lat: data.rows.item(i).lat
-                  },
-                  batteryStatus: data.rows.item(i).batteryStatus
-                }, (respData) => {
-                  let logs = this.exportedLogEntry(respData);
-                  if (++c == data.rows.length) resolve(logs);
+    return new Promise((resolve, reject) => {
+      let updatedLogs = [];
+      this.getUnsentLogs().then(exportables => {
+        if (exportables) {
+          this.getLogImages(exportables).then((logs: any) => {
+            let c = 0;
+            for (let i = 0; i < logs.length; i++) {
+              this.socketService.socket.emit('cl-timeIn', {
+                employeeId: this.employeeService.currentId,
+                timeIn: logs[i].timeIn,
+                pics: logs[i].b64s,
+                map: {
+                  lng: logs[i].map.lng,
+                  lat: logs[i].map.lat,
+                },
+                batteryStatus: logs[i].batteryStatus,
+                scanResult: logs[i].scanResult
+              }, (data) => {
+                let promises = logs[i].files.map((photo) => {
+                  let data = this.imageService.extractPathAndFile(photo);
+                  return this.file.removeFile(data.path, data.file);
                 });
+
+                Promise.all(promises).then(() => {
+                  console.log(c);
+                  let newLogs = this.exportedLogEntry(logs[i], updatedLogs);
+                  updatedLogs = newLogs;
+                  console.log('updatedLogs: ', updatedLogs);
+                  if (++c == logs.length){
+                    console.log("all done");
+                    resolve(updatedLogs);
+                  }
+                }).catch(e => console.log(e));
               });
-            });
+            }
+          })
+        }else resolve();
+      })
+    });
+  }
+
+  getUnsentLogs() {
+    let exportables = [];
+    return this.database.db.executeSql('select * from log where logId is null', {})
+      .then(data => {
+        let l = data.rows.length;
+        if (l > 0) {
+          let c = 0;
+          for (let i = 0; i < l; i++) {
+            let exp = {
+              id: data.rows.item(i).id,
+              timeIn: data.rows.item(i).timeIn,
+              map : {
+                lng : data.rows.item(i).long,
+                lat : data.rows.item(i).lat,
+                formattedAddress: data.rows.item(i).formattedAddress,
+              },
+              batteryStatus : data.rows.item(i).batteryStatus,
+              scanResult : data.rows.item(i).scanResult
+            }
+
+            exportables.push(exp);
+            if (++c == l) return exportables;
           }
         } else return false;
       });
+  }
+
+  getLogImages(exportables) {
+    return new Promise((resolve, reject) => {
+      let temp = exportables;
+      let c = 0;
+      //log loop
+      for (let i = 0; i < temp.length; i++) {
+        let b64s = [];
+        let files = [];
+        this.database.db.executeSql('select file from log_images inner join log on log_images.logId = log.id where log.id = ?', [temp[i].id]).then(data => {
+          let l = data.rows.length;
+          if (l > 0) {
+            let c1 = 0;
+            //log images loop
+            for (let j = 0; j < l; j++) {
+              let url = this.imageService.extractPathAndFile(data.rows.item(j).file);
+              let path = url.path;
+              let file = url.file;
+
+              this.imageService.urlToB64(path, file).then(b64 => {
+                b64s.push(b64);
+                files.push(url);
+                if (++c1 == l) {
+                  temp[i].b64s = b64s;
+                  temp[i].files = files;
+                  if (++c == temp.length) resolve(temp);
+                }
+              }).catch(e => console.log(e));
+            }
+          } else console.log("no file");
+        }).catch(e => console.log(e));
+      }
+    });
   }
 
   syncLogs(maxUnix, remoteLogs) {
@@ -263,8 +312,8 @@ export class LogProvider {
 
       this.import(remoteLogs).then(() => {
         return this.export(maxUnix);
-      }).then(logs => {
-        resolve(logs);
+      }).then(() => {
+        resolve();
       }).catch(e => {
         console.log(e);
       });
@@ -279,38 +328,35 @@ export class LogProvider {
     return log.timeIn;
   }
 
-  exportedLogEntry (data) {
+  exportedLogEntry(data, logSet) {
     let a = 0;
-    let temp = this.local_log;
-    temp.find((x, i) => {
-      if(x.unix == data.timeIn){
+    logSet.find((x, i) => {
+      if (x.unix == data.timeIn) {
         a = i;
         return true;
       }
     });
 
     let log = {
-      _id : data.id,
-      unix : data.timeIn,
-      map : {
-        formattedAddress : data.formattedAddress
+      _id: data.id,
+      unix: data.timeIn,
+      map: {
+        formattedAddress: data.formattedAddress
       },
-      isSeen : false
+      isSeen: false
     }
 
-    temp.splice(a,1, log);
-    console.log("logs updated");
-    return temp;
+    logSet.splice(a, 1, log);
+    return logSet;
   }
 
   logEntry(data) {
     if (data.id) {
-      let temp = this.local_log;
-      temp = temp.filter(x => {
+      this.local_log = this.local_log.filter(x => {
         return x.hasOwnProperty('_id');
       });
 
-      temp.unshift({
+      this.local_log.unshift({
         _id: data.id,
         unix: data.timeIn,
         map: {
@@ -318,13 +364,12 @@ export class LogProvider {
         },
         isSeen: false
       });
-      return temp;
     }
   }
 
-  saveLog(t, lat, long, loc, batt) {
+  saveLog(t, lat, long, loc, batt, scanResult) {
     return new Promise((resolve, reject) => {
-      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus, userId) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + lat + ', ' + long + ', "' + loc + '",' + batt + ', ' + this.accountService.accountIntId + ')', {}).then(() => {
+      this.database.db.executeSql('insert into log(timeIn, month, lat, long, formattedAddress, batteryStatus, userId, scanResult) VALUES(' + t + ', ' + this.timeService.getCurMonth() + ', ' + lat + ', ' + long + ', "' + loc + '",' + batt + ', ' + this.accountService.accountIntId + ', "' + scanResult + '")', {}).then(() => {
         this.database.getLastInsert('log').then((id: number) => {
           resolve(id);
         }).catch(e => console.log(e));

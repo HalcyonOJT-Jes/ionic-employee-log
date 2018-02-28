@@ -98,7 +98,7 @@ export class ImageProvider {
 
   saveBase64(base64: string, name: string) {
     let pictureDir = this.file.externalDataDirectory;
-    let fileName = name + ".jpeg";
+    let fileName = name.split('.')[0] + 'jpeg';
     let fullDir = pictureDir + fileName;
     return this.b64toBlob(base64, 'image/jpeg').then((blob: any) => {
       return this.imageExists(pictureDir, fileName).then(() => {
@@ -116,7 +116,7 @@ export class ImageProvider {
   //for local
   extractPathAndFile(dir) {
     let a = dir.lastIndexOf('/');
-    let file = dir.substring(a + 1, dir.length).replace('%20', ' ');
+    let file = dir.substring(a + 1, dir.length).replace(/%20/g,' ');
     let path = dir.substring(0, a);
     return {
       file: file,
