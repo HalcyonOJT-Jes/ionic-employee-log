@@ -29,6 +29,8 @@ import { OneSignal } from '@ionic-native/onesignal';
 import { LocalNotifications } from '@ionic-native/local-notifications';
 import { IonicMultiCameraModule } from 'ionic-multi-camera';
 import { ImagePicker } from '@ionic-native/image-picker';
+import { Diagnostic } from '@ionic-native/diagnostic';
+import { LocationAccuracy } from '@ionic-native/location-accuracy';
 
 import { MyApp } from './app.component';
 
@@ -82,6 +84,8 @@ import { PipesModule } from '../pipes/pipes.module';
     GoogleMaps,
     Network,
     Device,
+    Diagnostic,
+    LocationAccuracy,
     EmployeesProvider,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     ConnectionProvider,

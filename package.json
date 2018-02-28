@@ -29,12 +29,14 @@
     "@ionic-native/core": "4.4.0",
     "@ionic-native/device": "^4.5.2",
     "@ionic-native/device-motion": "^4.5.3",
+    "@ionic-native/diagnostic": "^4.5.3",
     "@ionic-native/fcm": "^4.5.3",
     "@ionic-native/file": "^4.5.2",
     "@ionic-native/geolocation": "^4.5.2",
     "@ionic-native/google-maps": "^4.5.2",
     "@ionic-native/image-picker": "^4.5.3",
     "@ionic-native/local-notifications": "^4.5.3",
+    "@ionic-native/location-accuracy": "^4.5.3",
     "@ionic-native/native-geocoder": "^4.5.2",
     "@ionic-native/network": "^4.5.2",
     "@ionic-native/onesignal": "^4.5.3",
@@ -64,11 +66,13 @@
     "cordova-plugin-local-notification": "^0.9.0-beta.2",
     "cordova-plugin-nativegeocoder": "^2.0.5",
     "cordova-plugin-network-information": "^2.0.1",
+    "cordova-plugin-request-location-accuracy": "^2.2.2",
     "cordova-plugin-splashscreen": "^4.0.3",
     "cordova-plugin-statusbar": "^2.4.1",
     "cordova-plugin-telerik-imagepicker": "^2.1.8",
     "cordova-plugin-whitelist": "^1.3.1",
     "cordova-sqlite-storage": "^2.2.0",
+    "cordova.plugins.diagnostic": "^3.9.2",
     "ionic-angular": "3.9.2",
     "ionic-multi-camera": "^1.0.0",
     "ionic-plugin-keyboard": "^2.2.1",
@@ -121,7 +125,9 @@
       "cordova-plugin-statusbar": {},
       "com.synconset.imagepicker": {
         "PHOTO_LIBRARY_USAGE_DESCRIPTION": "choose log pictures"
-      }
+      },
+      "cordova.plugins.diagnostic": {},
+      "cordova-plugin-request-location-accuracy": {}
     },
     "platforms": [
       "browser",

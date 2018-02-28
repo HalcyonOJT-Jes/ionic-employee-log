@@ -1,7 +1,9 @@
+import { LocationAccuracy } from '@ionic-native/location-accuracy';
+import { Diagnostic } from '@ionic-native/diagnostic';
 import { MessageProvider } from './../providers/message/message';
 import { ConnectionProvider } from './../providers/connection/connection';
 import { Component, ViewChild } from '@angular/core';
-import { Nav, Platform } from 'ionic-angular';
+import { Nav, Platform, AlertController } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { OneSignal } from '@ionic-native/onesignal';
@@ -17,21 +19,28 @@ export class MyApp {
   rootPage: string;
   pages: Array<{ title: string, component: any }>;
   employeeIds = [];
+  
 
-  constructor(platform: Platform, statusBar: StatusBar, splashScreen: SplashScreen, connection: ConnectionProvider, private oneSignal: OneSignal, private messages: MessageProvider, private storage: Storage, private auth: AuthProvider, public socketService: SocketProvider) {
+  constructor(
+    private platform      : Platform,
+    statusBar             : StatusBar,
+    splashScreen          : SplashScreen,
+    private connection    : ConnectionProvider,
+    private oneSignal     : OneSignal,
+    private messages      : MessageProvider,
+    private storage       : Storage,
+    private auth          : AuthProvider,
+    public socketService  : SocketProvider,
+    private diagnostic    : Diagnostic,
+    private alert         : AlertController,
+    private locationAcc   : LocationAccuracy
+  ) {
     platform.ready().then(() => {
-      this.initializeApp();
-      // this.initializeOneSignal();
-      //checks for connection; pass connection status to token existence check;
-      let hasConnection: boolean = connection.network.type != 'none' ? true : false;
-      this.auth.checkExistingToken(hasConnection).then((valid) => {
-        if (valid) {
-          this.auth.isAuth.next(true);
-          this.rootPage = 'HomePage';
-        } else this.rootPage = 'LoginPage';
-      }).catch(e => {
-        console.log(e);
-      });
+
+      this.diagnostic.isGpsLocationEnabled().then((res) => {
+        if(!res) this.gpsPrompt.present();
+        else this.initializeApp();
+      })
     });
 
     this.pages = [
@@ -47,6 +56,28 @@ export class MyApp {
     });
   }
 
+  gpsPrompt = this.alert.create({
+    title: "GPS is off.",
+    subTitle : "Please enable GPS to use the application.",
+    buttons : [
+      {
+        text : 'Enable',
+        handler : () => {
+          this.locationAcc.canRequest().then((canRequest: boolean) => {
+            if(canRequest) {
+              this.locationAcc.request(this.locationAcc.REQUEST_PRIORITY_HIGH_ACCURACY)
+              .then(this.initializeApp, () => this.platform.exitApp());
+            }
+          });
+        }
+      },
+      {
+        text : 'Cancel',
+        handler : () => this.platform.exitApp()
+      }
+    ]
+  });
+
   openPage(page) {
     if (page.title !== 'Logout') this.nav.setRoot(page.component);
     else {
@@ -54,15 +85,21 @@ export class MyApp {
         this.socketService.socket.disconnect();
         this.auth.isAuth.next(false);
         this.nav.setRoot('LoginPage');
-      }).catch(e => {
-        console.log(e);
-      });
+      }).catch(e => console.log(e));
     }
   }
 
-  initializeApp() {
-    console.log("initializeApp()");
-    
+  initializeApp = () => {
+    //checks for connection; pass connection status to token existence check;
+    let hasConnection: boolean = this.connection.network.type != 'none' ? true : false;
+    this.auth.checkExistingToken(hasConnection).then((valid) => {
+      if (valid) {
+        this.auth.isAuth.next(true);
+        this.rootPage = 'HomePage';
+      } else this.rootPage = 'LoginPage';
+    }).catch(e => {
+      console.log(e);
+    });
   }
 
   // initializeOneSignal(){

@@ -111,4 +111,6 @@
     <plugin name="com.synconset.imagepicker" spec="~2.1.8">
         <variable name="PHOTO_LIBRARY_USAGE_DESCRIPTION" value="choose log pictures" />
     </plugin>
+    <plugin name="cordova.plugins.diagnostic" spec="^3.9.2" />
+    <plugin name="cordova-plugin-request-location-accuracy" spec="^2.2.2" />
 </widget>
