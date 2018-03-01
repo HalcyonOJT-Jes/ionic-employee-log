@@ -13,7 +13,7 @@ import { AlertController } from 'ionic-angular';
 import { LocationProvider } from '../../providers/location/location';
 import { IonicMultiCamera, Picture } from 'ionic-multi-camera';
 import { ImageProvider } from '../../providers/image/image';
-
+import { Subscription } from 'rxjs/Rx';
 
 @IonicPage()
 @Component({
@@ -50,22 +50,24 @@ export class MenuPage {
     }]
   });
 
+  dcSubs : Subscription;
+
   constructor(
-    private navParams: NavParams,
-    private file: File,
-    private connectionService: ConnectionProvider,
-    public alertCtrl: AlertController,
-    public navCtrl: NavController,
-    public employeeId: EmployeesProvider,
-    public locationService: LocationProvider,
-    public timeService: TimeProvider,
-    public database: DatabaseProvider,
-    private loader: LoadingController,
-    public batteryService: BatteryProvider,
-    private logService: LogProvider,
-    private socketService: SocketProvider,
-    public camera: IonicMultiCamera,
-    public imageService: ImageProvider
+    private navParams         : NavParams,
+    private file              : File,
+    private connectionService : ConnectionProvider,
+    public alertCtrl          : AlertController,
+    public navCtrl            : NavController,
+    public employeeId         : EmployeesProvider,
+    public locationService    : LocationProvider,
+    public timeService        : TimeProvider,
+    public database           : DatabaseProvider,
+    private loader            : LoadingController,
+    public batteryService     :  BatteryProvider,
+    private logService        : LogProvider,
+    private socketService     : SocketProvider,
+    public camera             : IonicMultiCamera,
+    public imageService       : ImageProvider
   ) {
     this.scanResult = this.navParams.get('scanResult');
   }
@@ -76,24 +78,49 @@ export class MenuPage {
     else this.sendLoading.setContent("Can't connect to server. Saving to local.").present();
 
     let t = this.timeService.curUnix;
-    this.logService.saveLog(
-      t,
-      this.locationService.lat,
-      this.locationService.long,
-      this.locationService.location,
-      this.batteryService.currBattery,
-      this.scanResult
-    ).then(logId => {
-      return this.saveLogImages(logId);
-    }).then(() => {
-      let images = this.database.photos.map((photo) => {
-        return Promise.resolve(photo.base64Data);
-      });
+    let logData = {
+      t : t,
+      lat : this.locationService.lat,
+      lng : this.locationService.long,
+      loc : this.locationService.location,
+      batt : this.batteryService.currBattery,
+      res : this.scanResult
+    }
+    this.logService.saveLog(logData).then(logId => this.saveLogImages(logId))
+    .then(()=> {
+      let log = {
+        unix: logData.t,
+        map: {
+          formattedAddress: logData.loc
+        },
+        isSeen: false
+      }
+      this.logService.local_log.unshift(log);
+      let images = this.database.photos.map((photo) => Promise.resolve(photo.base64Data));
 
       Promise.all(images).then((imgs) => {
         //send or keep log
+        console.log("NOW///////////////////////////////////////");
         if (this.connectionService.connection) {
           console.log("sending to server");
+          //watch for disconnection while sending
+          this.dcSubs = this.connectionService.watchDisconnection(() => {
+            this.alertCtrl.create({
+              title : "Connection Lost.",
+              message : 'Your log has been saved locally. It will be sent once connected to the server.',
+              buttons : [
+                {
+                  text : 'Ok',
+                  handler : () => {
+                    this.dcSubs.unsubscribe();
+                    this.connectionService.stopWatchingDC();
+                    this.navCtrl.setRoot('HomePage');
+                  }
+                }
+              ]
+            }).present();
+          }).subscribe();
+
           //send log to server
           this.socketService.socket.emit('cl-timeIn', {
             employeeId: this.employeeId.currentId,
@@ -112,26 +139,17 @@ export class MenuPage {
               return this.file.removeFile(data.path, data.file);
             });
             
+            console.log('data: ', data);
             Promise.all(promises).then(() => {
               this.sendLoading.dismiss().then(() => {
+                this.dcSubs.unsubscribe();
+                this.connectionService.stopWatchingDC();
                 this.alert.present();
-                this.logService.logEntry(data);
+                this.logService.exportedLogEntry(data);
               });
             }).catch(e => console.log(e));
           });
-        } else {
-          this.sendLoading.dismiss().then(() => {
-            this.alert.setSubTitle('Log saved to local.').present();
-            let nm = {
-              unix: t,
-              map: {
-                formattedAddress: this.locationService.location
-              },
-              isSeen: false
-            }
-            this.logService.local_log.unshift(nm);
-          })
-        }
+        } else this.sendLoading.dismiss().then(() => this.alert.setSubTitle('Log saved to local.').present())
       }).catch(e => console.log(e))
     }).catch(e => console.log(e));
   }

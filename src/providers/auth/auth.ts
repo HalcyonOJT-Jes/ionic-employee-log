@@ -59,7 +59,7 @@ export class AuthProvider {
     return this.storage.get('token').then(token => {
       this.token = token;
       if (typeof token === 'string') {
-        //skip token validation if false; continue otherwise;
+        //if no connection, skip token validation; continue otherwise;
         if (!hasConnection) {
           return this.storage.get('userId').then(userId => {
             if (typeof userId === "string") {
@@ -108,9 +108,7 @@ export class AuthProvider {
             });
           } else resolve(true)
         }).catch(e => console.log(e));
-      }, err => {
-        resolve(false);
-      });
+      }, err => this.checkExistingToken(false));
     });
   }
 

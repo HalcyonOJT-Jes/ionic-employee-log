@@ -105,7 +105,7 @@ import { PipesModule } from '../pipes/pipes.module';
     AuthProvider,
     SocketProvider,
     AccountProvider,
-    ImageProvider
+    ImageProvider,
   ]
 })
 export class AppModule {}

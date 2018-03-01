@@ -86,6 +86,20 @@ export class ConnectionProvider {
     }).present();
   }
 
+  watchDisconnection(fn) {
+    return new Observable((observer) => {
+      this.socketService.socket.on('disconnect', () => {
+        console.log("yay");
+        fn();
+        observer.next();
+      });
+    });
+  }
+
+  stopWatchingDC(){
+    this.socketService.socket.off('disconnect');
+  }
+
   // serverConnect() {
   //   let obs = new Observable((observer) => {
   //     console.log("Connected to server");

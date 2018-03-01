@@ -38,7 +38,14 @@ export class MyApp {
     platform.ready().then(() => {
 
       this.diagnostic.isGpsLocationEnabled().then((res) => {
-        if(!res) this.gpsPrompt.present();
+        if(!res) {
+          this.locationAcc.canRequest().then((canRequest: boolean) => {
+            if(canRequest) {
+              this.locationAcc.request(this.locationAcc.REQUEST_PRIORITY_HIGH_ACCURACY)
+              .then(this.initializeApp, () => this.platform.exitApp());
+            }
+          });
+        }
         else this.initializeApp();
       })
     });
@@ -56,28 +63,6 @@ export class MyApp {
     });
   }
 
-  gpsPrompt = this.alert.create({
-    title: "GPS is off.",
-    subTitle : "Please enable GPS to use the application.",
-    buttons : [
-      {
-        text : 'Enable',
-        handler : () => {
-          this.locationAcc.canRequest().then((canRequest: boolean) => {
-            if(canRequest) {
-              this.locationAcc.request(this.locationAcc.REQUEST_PRIORITY_HIGH_ACCURACY)
-              .then(this.initializeApp, () => this.platform.exitApp());
-            }
-          });
-        }
-      },
-      {
-        text : 'Cancel',
-        handler : () => this.platform.exitApp()
-      }
-    ]
-  });
-
   openPage(page) {
     if (page.title !== 'Logout') this.nav.setRoot(page.component);
     else {
@@ -92,7 +77,7 @@ export class MyApp {
   initializeApp = () => {
     //checks for connection; pass connection status to token existence check;
     let hasConnection: boolean = this.connection.network.type != 'none' ? true : false;
-    this.auth.checkExistingToken(hasConnection).then((valid) => {
+    this.auth.checkExistingToken(hasConnection).then(valid => {
       if (valid) {
         this.auth.isAuth.next(true);
         this.rootPage = 'HomePage';

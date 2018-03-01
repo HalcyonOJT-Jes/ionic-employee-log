@@ -30,9 +30,7 @@ export class LoginPage {
               this.auth.isAuth.next(true);
             }
           });
-        }).catch(e => {
-          console.log(e);
-        });
+        }).catch(e => console.log(e));
       } else {
         loading.dismiss();
         loading.onDidDismiss(() => {
