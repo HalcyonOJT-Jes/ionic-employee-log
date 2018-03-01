@@ -60,22 +60,16 @@ export class AuthProvider {
       this.token = token;
       if (typeof token === 'string') {
         //if no connection, skip token validation; continue otherwise;
-        if (!hasConnection) {
-          return this.storage.get('userId').then(userId => {
-            if (typeof userId === "string") {
-              this.accountService.accountId = userId;
-              return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {});
+        if (!hasConnection) return this.loginOffline();
+        else{
+          return this.validateToken(token).then(res => {
+            console.log(res);
+            switch(res){
+              case -1 : 
+                return this.loginOffline();
+              case 1  : return true;
+              default : return false;
             }
-          }).then(data => {
-            if (data.rows.length > 0) {
-              this.accountService.accountIntId = data.rows.item(0).id;
-              this.accountService.accountPic = data.rows.item(0).pic;
-              return true;
-            } else return false;
-          });
-        }else{
-          return this.validateToken(token).then(valid => {
-            if (valid) return true; else return false;
           });
         }
       }else return false;
@@ -97,19 +91,32 @@ export class AuthProvider {
               console.log("User image saved : " + filePath);
               return this.accountService.saveUser(data._id, filePath);
             })
-            .catch(e => console.log(e))
             .then(() => {
               return this.storage.set('userId', data._id);
             })
-            .catch(e => console.log(e))
             .then(() => {
               console.log("Account saved.");
-              resolve(true)
-            });
-          } else resolve(true)
+              resolve(1)
+            })
+            .catch(e => console.log(e));
+          } else resolve(1)
         }).catch(e => console.log(e));
-      }, err => this.checkExistingToken(false));
+      }, err => resolve(-1));
     });
   }
 
+  loginOffline() {
+    return this.storage.get('userId').then(userId => {
+      if (typeof userId === "string") {
+        this.accountService.accountId = userId;
+        return this.database.db.executeSql('select id, pic, userId from user where userId = "' + userId + '"', {});
+      }
+    }).then(data => {
+      if (data.rows.length > 0) {
+        this.accountService.accountIntId = data.rows.item(0).id;
+        this.accountService.accountPic = data.rows.item(0).pic;
+        return true;
+      } else return false;
+    });
+  }
 }
