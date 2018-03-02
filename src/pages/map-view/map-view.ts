@@ -83,8 +83,12 @@ export class MapViewPage {
 
   accept() {
     this.barcodeScanner.scan().then((data) => {
+      let res = '';
+      if(data.format == 'QR_CODE') res = 'q'+ data.text;
+      else res = 'b'+ data.text;
+      
       this.navCtrl.setRoot('MenuPage', {
-        scanResult : data.text
+        scanResult : res
       });
     }).catch(e => {
       this.alrtCtrl.create({
