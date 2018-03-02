@@ -46,6 +46,11 @@ export class LogProvider {
             if (o._id === logId.id) {
               temp_log[i].isSeen = true;
               this.local_log = temp_log;
+              
+              //update log
+              this.database.db.executeSql('update log set logId = ?, isSeen = 1 where timeIn = ? and userId = ?', [logId, o.unix, this.accountService.accountIntId])
+              .then(res => console.log("log updated"))
+              .catch(e => console.log(e));
               return true;
             }
           });
@@ -331,9 +336,7 @@ export class LogProvider {
       },
       isSeen: false
     }
-    console.log('logs: ', logs);
     logs.splice(a, 1, log);
-    console.log('logs: ', logs);
     return logs;
   }
 
