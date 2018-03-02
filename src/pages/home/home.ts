@@ -55,7 +55,7 @@ export class HomePage {
 
   getPicture(){
     this.imagePicker.getPictures({
-      quality: 80
+      quality: 40
     }).then(results => {
       if (results.length == 0) return;
 

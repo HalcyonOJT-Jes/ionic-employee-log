@@ -223,7 +223,11 @@ export class LogProvider {
                 batteryStatus: logs[i].batteryStatus,
                 scanResult: logs[i].scanResult
               }, (data) => {
-                let promises = logs[i].files.map(photo => this.file.removeFile(photo.path, photo.file));
+                let promises = logs[i].files.map(photo => {
+                  return this.file.removeFile(photo.path, photo.file).then(() => {
+                    console.log(photo.path + '/' + photo.file + ' is deleted.');
+                  })
+                });
                 Promise.all(promises).then(() => {
                   this.exportedLogEntry(data);
                   if (++c == logs.length) resolve();

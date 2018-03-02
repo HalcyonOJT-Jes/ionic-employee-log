@@ -136,10 +136,11 @@ export class MenuPage {
           }, (data) => {
             let promises = this.database.photos.map((photo) => {
               let data = this.imageService.extractPathAndFile(photo.normalizedURL);
-              return this.file.removeFile(data.path, data.file);
+              return this.file.removeFile(data.path, data.file).then(() => {
+                console.log(data.path + '/' + data.file + ' is deleted.');
+              });
             });
             
-            console.log('data: ', data);
             Promise.all(promises).then(() => {
               this.sendLoading.dismiss().then(() => {
                 this.dcSubs.unsubscribe();

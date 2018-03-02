@@ -97,7 +97,7 @@ export class ImageProvider {
   }
 
   saveBase64(base64: string, name: string) {
-    let pictureDir = this.file.externalDataDirectory;
+    let pictureDir = this.file.cacheDirectory;
     let fileName = name.split('.')[0] + '.jpeg';
     let fullDir = pictureDir + fileName;
     return this.b64toBlob(base64, 'image/jpeg').then((blob: any) => {
