@@ -101,14 +101,10 @@ export class ImageProvider {
     let fileName = name.split('.')[0] + '.jpeg';
     let fullDir = pictureDir + fileName;
     return this.b64toBlob(base64, 'image/jpeg').then((blob: any) => {
-      return this.imageExists(pictureDir, fileName).then(() => {
-        return fullDir;
-      }).catch(() => {
-        return this.file.writeFile(pictureDir, fileName, blob).then(() => {
-          return fullDir;
-        }).catch(e => {
-          return fullDir;
-        })
+      return this.imageExists(pictureDir, fileName).then(() => fullDir)
+      .catch(() => {
+        return this.file.writeFile(pictureDir, fileName, blob).then(() => fullDir)
+        .catch(e => fullDir)
       })
     }).catch(e => console.log(e))
   }

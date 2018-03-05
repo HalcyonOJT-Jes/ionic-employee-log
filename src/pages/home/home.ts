@@ -118,6 +118,10 @@ export class HomePage {
     });
   }
 
+  ionViewDidLeave () {
+    this.log.all_log = this.log.logs;
+  }
+
   ionViewCanEnter () {
     //retreive all logs
     this.log.logs = this.log.all_log;

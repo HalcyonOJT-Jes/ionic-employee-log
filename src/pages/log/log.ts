@@ -27,11 +27,6 @@ export class LogPage {
     this.log.getCustomLogs(this.timeService.months.indexOf(this.month), this.year);
   }
 
-  ionViewDidLoad() {
-    //temporarily store all logs
-    this.log.all_log = this.log.logs;
-  }
-
   ionViewDidLeave() {
     this.log.custom_log = [];
   }
