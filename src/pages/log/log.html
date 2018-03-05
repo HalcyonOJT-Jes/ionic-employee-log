@@ -1,5 +1,4 @@
 <ion-header>
-
   <ion-navbar color="primary">
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
@@ -7,49 +6,21 @@
   </ion-navbar>
   <div class="hero log-filter" color="secondary">
     <ion-row>
-      <ion-col col-5>
-        <span>Select Month</span>
-      </ion-col>
-      <ion-col col-7>
-        <ion-select [(ngModel)]="month" (ngModelChange)="monthChanged()" style="float:right">
+      <ion-col col-4 offset-4>
+        <ion-select [(ngModel)]="month" (ngModelChange)="filterChanged()" style="float:right">
+          <ion-option>[Select Month]</ion-option>
           <ion-option *ngFor="let m of timeService.months; index as i;">{{ m }}</ion-option>
+        </ion-select>
+      </ion-col>
+      <ion-col col-4>
+        <ion-select [(ngModel)]="year" (ngModelChange)="filterChanged()" style="float:right">
+          <ion-option *ngFor="let y of timeService.yearArr; index as i;">{{ y }}</ion-option>
         </ion-select>
       </ion-col>
     </ion-row>
   </div>
 </ion-header>
 
-
 <ion-content>
-  <ion-grid class="log">
-    <ion-row>
-      <!-- <ion-col col-10 offset-1 class="log-list" *ngIf="log.custom_log.length == 0">
-        <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i;">
-          <ion-col col-1 style="white-space:nowrap;">{{ c - i }}</ion-col>
-          <ion-col col-8>
-            <div class="date">{{ l.date }}</div>
-            <div class="location">{{ l.map.formattedAddress }}</div>
-          </ion-col>
-          <ion-col col-3>
-            <span class="time"> {{ l.time }}</span>
-            <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true) ? 'seen' : '' "></ion-icon>
-          </ion-col>
-        </ion-row>
-      </ion-col> -->
-
-      <ion-col col-10 offset-1 class="log-list" *ngIf="log.custom_log.length > 0">
-        <ion-row class="log-item" *ngFor="let l of log.custom_log; let c = count; index as i;">
-          <ion-col col-1 style="white-space:nowrap;">{{ c - i }}</ion-col>
-          <ion-col col-8>
-            <div class="date">{{ l.date }}</div>
-            <div class="location">{{ l.map.formattedAddress }}</div>
-          </ion-col>
-          <ion-col col-3>
-            <span class="time"> {{ l.time }}</span>
-            <!-- <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true) ? 'seen' : '' "></ion-icon> -->
-          </ion-col>
-        </ion-row>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  <log></log>
 </ion-content>

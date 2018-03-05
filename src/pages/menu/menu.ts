@@ -95,7 +95,7 @@ export class MenuPage {
         },
         isSeen: false
       }
-      this.logService.local_log.unshift(log);
+      this.logService.logs.unshift(log);
       let images = this.database.photos.map((photo) => Promise.resolve(photo.base64Data));
 
       Promise.all(images).then((imgs) => {

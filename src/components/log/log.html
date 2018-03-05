@@ -1,0 +1,22 @@
+<!-- Generated template for the LogComponent component -->
+<ion-row>
+  <ion-col col-10 offset-1 class="log-list" *ngIf="log.logs.length > 0">
+    <ion-row class="log-item" *ngFor="let l of log.logs; let c = count; index as i; trackBy : log.trackLog">
+      <ion-col col-2 style="white-space:nowrap;">
+        <div class="badge-outer">
+          <span class="badge">
+            <span>{{ c - i }}</span>
+          </span>
+        </div>
+      </ion-col>
+      <ion-col col-7>
+        <div class="date">{{ l.unix * 1000 | date:'EEE, MMM d, y' }}</div>
+        <div class="location">{{ l.map.formattedAddress }}</div>
+      </ion-col>
+      <ion-col col-3>
+        <span class="time"> {{ l.unix * 1000 | date:'h:mm' }} {{ l.unix * 1000 | date: 'a' | lowercase }}</span>
+        <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true || l.isSeen == 1) ? 'seen' : 'not-seen' "></ion-icon>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+</ion-row>

@@ -2,15 +2,13 @@ import { ImageProvider } from './../../providers/image/image';
 import { Component } from '@angular/core';
 import { NavController, NavParams, IonicPage, LoadingController } from 'ionic-angular';
 import { TimeProvider } from './../../providers/time/time';
-import { LogProvider } from './../../providers/log/log';
 import { DatabaseProvider } from './../../providers/database/database';
 import { StatusProvider } from '../../providers/status/status';
 import { LocationProvider } from './../../providers/location/location';
 import { IonicMultiCamera, Picture } from 'ionic-multi-camera';
 import { ActionSheetController } from 'ionic-angular/components/action-sheet/action-sheet-controller';
 import { ImagePicker } from '@ionic-native/image-picker';
-
-
+import { LogProvider } from '../../providers/log/log';
 @IonicPage()
 @Component({
   selector: 'page-home',
@@ -27,7 +25,6 @@ export class HomePage {
   constructor(
     public navCtrl: NavController,
     private loader: LoadingController,
-    public log: LogProvider,
     public timeService: TimeProvider,
     public database: DatabaseProvider,
     public statusService: StatusProvider,
@@ -35,7 +32,8 @@ export class HomePage {
     private locationService: LocationProvider,
     private actionSheetCtrl: ActionSheetController,
     private imagePicker: ImagePicker,
-    public imageService: ImageProvider
+    public imageService: ImageProvider,
+    public log : LogProvider
   ) {
   }
 
@@ -118,5 +116,10 @@ export class HomePage {
         }
       ]
     });
+  }
+
+  ionViewCanEnter () {
+    //retreive all logs
+    this.log.logs = this.log.all_log;
   }
 }

@@ -1,0 +1,22 @@
+log {
+    .log-list{
+        color : #24344b;
+        .date{
+            font-size: 1.2em;
+        }
+        .location{
+            font-size: .9em;
+        }
+        .badge-outer{
+            margin-top: 10px;
+            .badge{
+                font-size: .8em;
+                text-align: center;
+                background : #24344b;
+                color: $white;
+                padding : 2vw;
+                border-radius: 4vw;
+            }
+        }
+    }
+}

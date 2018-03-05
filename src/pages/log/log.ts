@@ -16,25 +16,23 @@ import { LogProvider } from '../../providers/log/log';
   templateUrl: 'log.html',
 })
 export class LogPage {
-  month : any;
-  rows : any;
-  constructor(public navCtrl: NavController, public navParams: NavParams,  public employeeId: EmployeesProvider, private log : LogProvider, public timeService : TimeProvider) {
-    this.month = this.timeService.months[this.timeService.getCurMonth()];
-  }
-  
-  monthChanged(){
-    this.log.getCustomLogs(this.timeService.months.indexOf(this.month));
+  month: any;
+  year: any;
+  constructor(public navCtrl: NavController, public navParams: NavParams, public employeeId: EmployeesProvider, private log: LogProvider, public timeService: TimeProvider) {
+    this.month = '[Select Month]';
+    this.year = this.timeService.curYear;
   }
 
-  sendPendingLogs() {
-
+  filterChanged() {
+    this.log.getCustomLogs(this.timeService.months.indexOf(this.month), this.year);
   }
 
   ionViewDidLoad() {
-    this.monthChanged();
+    //temporarily store all logs
+    this.log.all_log = this.log.logs;
   }
 
-  ionViewDidLeave(){
+  ionViewDidLeave() {
     this.log.custom_log = [];
   }
 }

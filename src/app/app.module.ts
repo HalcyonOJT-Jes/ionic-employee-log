@@ -1,3 +1,4 @@
+import { ComponentsModule } from './../components/components.module';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { ErrorHandler, NgModule, ElementRef } from '@angular/core';
@@ -66,7 +67,8 @@ import { PipesModule } from '../pipes/pipes.module';
     IonicModule.forRoot(MyApp),
     IonicStorageModule.forRoot(),
     IonicMultiCameraModule.forRoot(),
-    PipesModule.forRoot()
+    PipesModule.forRoot(),
+    ComponentsModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [

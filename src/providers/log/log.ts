@@ -16,7 +16,8 @@ import { File } from '@ionic-native/file';
 export class LogProvider {
   showEmptyLog: boolean = false;
   showLogLoader: boolean = false;
-  local_log = [];
+  logs = [];
+  all_log = [];
   custom_log = [];
   time_in_list = [];
   unixMax: any;
@@ -40,12 +41,12 @@ export class LogProvider {
     this.auth.isAuth.subscribe(x => {
       if (x) {
         this.socketService.socket.on('sv-notifSeen', (logId) => {
-          let temp_log = this.local_log;
+          let temp_log = this.logs;
 
           temp_log.find((o, i) => {
             if (o._id === logId.id) {
               temp_log[i].isSeen = true;
-              this.local_log = temp_log;
+              this.logs = temp_log;
               
               //update log
               this.database.db.executeSql('update log set logId = ?, isSeen = 1 where timeIn = ? and userId = ?', [logId, o.unix, this.accountService.accountIntId])
@@ -62,11 +63,11 @@ export class LogProvider {
           this.database._dbready.subscribe((ready) => {
             if (ready) {
               this.getRemoteLogs(data).then((logs: Array<{}>) => {
-                if(this.local_log.length <= 0 || this.local_log.length == logs.length) this.local_log = logs;
+                if(this.logs.length <= 0 || this.logs.length == logs.length) this.logs = logs;
                 if (logs.length > 0) {
                   this.findRemoteunixMax().then((maxUnix) => {
                     this.syncLogs(maxUnix, logs).then((syncedLogs: any) => {
-                      if (syncedLogs != null) this.local_log = syncedLogs;
+                      if (syncedLogs != null) this.logs = syncedLogs;
                       this.showLogLoader = false;
                       this.showEmptyLog = false;
                       console.log("sync complete");
@@ -83,7 +84,7 @@ export class LogProvider {
         });
       } else {
         //resets log and timeinlist(for maxunix upon logout)
-        this.local_log = [];
+        this.logs = [];
         this.time_in_list = [];
       }
     });
@@ -102,26 +103,34 @@ export class LogProvider {
     });
   }
 
-  getCustomLogs(month) {
+  getCustomLogs(month, year) {
+    let unix_start = 0;
+    let unix_end = 0;
+    if(month >= 0){
+      unix_start = Math.round(new Date(year, month).getTime() / 1000);
+      unix_end = Math.round(new Date(year, month + 1, 0).getTime() / 1000);
+    }else{
+      unix_start = Math.round(new Date(year, 0, 1).getTime() / 1000);
+      unix_end = Math.round(new Date(year, 12, 0).getTime() / 1000);
+    }
     // get existing logs
-    this.database.db.executeSql('select * from log inner join user on log.userId = user.id where month = ' + month + ' and user.userId = "' + this.accountService.accountId + '" order by logId DESC', {}).then((data) => {
+    this.database.db.executeSql('select * from log inner join user on log.userId = user.id where user.userId = ? and timeIn BETWEEN ? and ? order by logId DESC', [this.accountService.accountId, unix_start, unix_end]).then((data) => {
       this.custom_log = [];
       if (data.rows.length > 0) {
         for (let i = 0; i < data.rows.length; i++) {
 
           this.custom_log.push({
             id: data.rows.item(i).logId,
-            unix: data.rows.item(i).time,
+            unix: data.rows.item(i).timeIn,
             map: {
-              formattedAddress: data.rows.item(i).location
+              formattedAddress: data.rows.item(i).formattedAddress
             },
             isSeen: data.rows.item(i).isSeen
           });
         }
       }
-    }).catch(e => {
-      console.log(e);
-    });
+      this.logs = this.custom_log;
+    }).catch(e => console.log(e));
   }
 
   getLocalLogs() {
@@ -143,7 +152,7 @@ export class LogProvider {
                   },
                   isSeen: data.rows.item(i).isSeen
                 });
-                if (++c == data.rows.length) this.local_log = temp;
+                if (++c == data.rows.length) this.logs = temp;
               }
             } else console.log("log empty");
           }).catch(e => {
@@ -323,7 +332,7 @@ export class LogProvider {
 
   exportedLogEntry(data) {
     let a = 0;
-    let logs = this.local_log;
+    let logs = this.logs;
     logs.find((x, i) => {
       console.log(x.unix, data.timeIn);
       if (x.unix == data.timeIn) {

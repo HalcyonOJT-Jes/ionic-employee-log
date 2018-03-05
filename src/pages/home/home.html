@@ -9,7 +9,8 @@
     <ion-row>
       <ion-col col-6 offset-3 class="today">
         <div class="date">{{ this.timeService.curUnix * 1000 | date:'EEE, MMM d, y' }}</div>
-        <div class="time">{{ this.timeService.curUnix * 1000 | date:'h:mm:ss' }} {{ this.timeService.curUnix * 1000 | date: 'a' | lowercase }}</div>
+        <div class="time">{{ this.timeService.curUnix * 1000 | date:'h:mm:ss' }} {{ this.timeService.curUnix * 1000 | date: 'a' | lowercase
+          }}</div>
         <button ion-button color="btnPrimary" large (click)="clockIn()">CLOCK IN</button>
       </ion-col>
     </ion-row>
@@ -19,31 +20,13 @@
 <ion-content>
   <ion-grid class="log">
     <ion-row>
-      <ion-col col-10 offset-1 class="empty-message" *ngIf="log.showEmptyLog == true && log.local_log.length == 0">
+      <ion-col col-10 offset-1 class="empty-message" *ngIf="log.showEmptyLog == true && log.logs.length == 0">
         Nothing here. :(
       </ion-col>
       <ion-col col-10 offset-1 class="log-loader" *ngIf="log.showLogLoader == true">
         <ion-spinner></ion-spinner>
       </ion-col>
-      <ion-col col-10 offset-1 class="log-list" *ngIf="log.local_log.length > 0">
-        <ion-row class="log-item" *ngFor="let l of log.local_log; let c = count; index as i; trackBy : log.trackLog">
-          <ion-col col-2 style="white-space:nowrap;">
-            <div class="badge-outer">
-              <span class="badge">
-                <span>{{ c - i }}</span>
-              </span>
-            </div>
-          </ion-col>
-          <ion-col col-7>
-            <div class="date">{{ l.unix * 1000 | date:'EEE, MMM d, y' }}</div>
-            <div class="location">{{ l.map.formattedAddress }}</div>
-          </ion-col>
-          <ion-col col-3>
-            <span class="time"> {{ l.unix * 1000 | date:'h:mm' }} {{ l.unix * 1000 | date: 'a' | lowercase }}</span>
-            <ion-icon name="checkmark-circle" class="check" [ngClass]="(l.isSeen === true || l.isSeen == 1) ? 'seen' : 'not-seen' "></ion-icon>
-          </ion-col>
-        </ion-row>
-      </ion-col>
+      <log></log>
     </ion-row>
   </ion-grid>
 </ion-content>
