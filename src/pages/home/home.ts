@@ -53,7 +53,7 @@ export class HomePage {
 
   getPicture(){
     this.imagePicker.getPictures({
-      quality: 40
+      quality: 5
     }).then(results => {
       if (results.length == 0) return;
 
@@ -86,7 +86,14 @@ export class HomePage {
   }
 
   takePicture = () => {
-    this.camera.getPicture().then((pictures: Array<Picture>) => {
+
+    let cameraOptions = {
+      quality : 4,
+      width : 700,
+      height : 1200
+    }
+
+    this.camera.getPicture(cameraOptions).then((pictures: Array<Picture>) => {
       if(pictures.length < 0) return;
       this.openMapLoading.present().then(() => {
         let temp = [];

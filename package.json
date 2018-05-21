@@ -105,7 +105,7 @@
         "GEOLOCATION_USAGE_DESCRIPTION": "test"
       },
       "cordova-plugin-googlemaps": {
-        "API_KEY_FOR_ANDROID": "AIzaSyCPYWRc1qFMhiHDicFn0COzNtVUzlakSaM",
+        "API_KEY_FOR_ANDROID": "AIzaSyBhF0t3IOPAF_JzhM-hATmv2LZl2YK9Ds0",
         "API_KEY_FOR_IOS": "AIzaSyCPYWRc1qFMhiHDicFn0COzNtVUzlakSaM",
         "LOCATION_WHEN_IN_USE_DESCRIPTION": "Show your location on the map",
         "LOCATION_ALWAYS_USAGE_DESCRIPTION": "Trace your location on the map"
