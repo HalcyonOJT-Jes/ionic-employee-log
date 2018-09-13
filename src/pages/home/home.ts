@@ -53,7 +53,7 @@ export class HomePage {
 
   getPicture(){
     this.imagePicker.getPictures({
-      quality: 5
+      quality: 15
     }).then(results => {
       if (results.length == 0) return;
 
@@ -88,7 +88,7 @@ export class HomePage {
   takePicture = () => {
 
     let cameraOptions = {
-      quality : 4,
+      quality : 15,
       width : 700,
       height : 1200
     }
