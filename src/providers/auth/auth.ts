@@ -84,6 +84,8 @@ export class AuthProvider {
           'Content-Type': 'applicaton/json'
         })
       }).subscribe((data: any) => { 
+        console.log("VALIDATED :", data);
+        
         this.accountService.accountExists(data._id).then(exists => {
           if (!exists) {
             this.accountService.saveUserImage(data.pic.thumb)

@@ -18,6 +18,8 @@ export class LocationProvider {
   lat: any;
   location: string;
   watch = this.geolocation.watchPosition().subscribe((data) => {
+    console.log("LOCATEEEEE Me!", data);
+    
     this.long = data.coords.longitude;
     this.lat = data.coords.latitude;
     this.geocoder.reverseGeocode(this.lat, this.long).then((result: NativeGeocoderReverseResult) => {
